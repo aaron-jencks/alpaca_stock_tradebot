@@ -1,0 +1,47 @@
+@startuml "Domain Model Diagram"
+
+object website {
+    + name
+    + price
+}
+
+class WebsiteDescriptor {
+    + Day of year
+    + Year
+}
+
+website "1" .. "1" WebsiteDescriptor : < describes
+
+class WebsiteParser {
+    + url : string
+    + parse() : WebsiteDescriptor[]
+}
+
+WebsiteParser "1" .. "0..*" WebsiteDescriptor : > creates
+
+class WebsiteController {
+    + sites : WebsiteParser[]
+    + pollWebsites() : WebsiteDescriptor[]
+}
+
+WebsiteController "1" .. "1..*" WebsiteParser : > Controls
+
+class DataController {
+    + data : DataFrame
+    + append(site : WebsiteDescriptor)
+    + save(filename : string)
+}
+
+class Main {
+}
+
+Main "1" .. "1" WebsiteController : > Triggers
+Main "1" .. "1" DataController : > Triggers
+
+class Timer {
+    + interval : int
+}
+
+Timer "1" .. "1" Main : > Triggers
+
+@enduml
