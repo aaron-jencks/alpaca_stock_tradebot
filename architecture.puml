@@ -1,5 +1,24 @@
 @startuml "Domain Model Diagram"
 
+object stock {
+    + acronym
+    + price
+}
+
+class StockDescriptor {
+    + shares
+}
+
+stock "1" .. "1" StockDescriptor : < describes
+
+class TradeController {
+    + stocks : StockDescriptor[]
+    + buy(s: StockDescriptor)
+    + sell(s: StockDescriptor)
+}
+
+StockDescriptor "1..*" .. "1" TradeController : < Manages
+
 object website {
     + name
     + price
@@ -26,22 +45,27 @@ class WebsiteController {
 
 WebsiteController "1" .. "1..*" WebsiteParser : > Controls
 
-class DataController {
+class DataMonitor {
     + data : DataFrame
     + append(site : WebsiteDescriptor)
-    + save(filename : string)
 }
 
-class Main {
-}
+TradeController "1" .. "1" DataMonitor : < Triggers
 
-Main "1" .. "1" WebsiteController : > Triggers
-Main "1" .. "1" DataController : > Triggers
+WebsiteController "1" .. "1" DataMonitor : > Triggers
 
 class Timer {
     + interval : int
 }
 
-Timer "1" .. "1" Main : > Triggers
+Timer "1" .. "1" WebsiteController : > Triggers
+
+class DataLogger {
+    + data : DataFrame
+    + append(trade : StockDescriptor)
+    + save(filename : string)
+}
+
+DataLogger "1" .. "1" TradeController : < Triggers
 
 @enduml
