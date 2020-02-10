@@ -6,7 +6,7 @@ import time
 from Timer import Timer
 from DataController import DataController
 from WebsiteController import WebsiteController
-from google_search_parser import GoogleParser
+from stock_info_retriever import GoogleParser
 
 
 if __name__ == "__main__":

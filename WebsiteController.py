@@ -4,8 +4,13 @@ import time
 
 from tqdm import tqdm
 
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+
 from WebsiteParser import WebsiteParser
 from WebsiteDescriptor import WebsiteDescriptor
+
+from robinhood_api import login
 
 
 def __parse__(p: WebsiteParser) -> WebsiteDescriptor:
@@ -19,7 +24,10 @@ class WebsiteController(Process):
     Trigger: Placing anything in here will cause the controller to parse it's websites and collect data
     """
 
-    def __init__(self, parsers: list, stopq: Queue = None, tx: Queue = None, trigger: Queue = None):
+    browser = None
+    logged_in = False
+
+    def __init__(self, parsers: list, username: str, password: str, stopq: Queue = None, tx: Queue = None, trigger: Queue = None):
         super().__init__()
         self.parsers = parsers
 
@@ -28,8 +36,20 @@ class WebsiteController(Process):
         self.Trigger = Queue() if trigger is None else trigger
         self.pool = Pool()
 
+        self.username = username
+        self.password = password
+
+        if WebsiteController.browser is None:
+            foptions = Options()
+            foptions.headless = False  # True
+            WebsiteController.browser = webdriver.Firefox(options=foptions)
+
     def __del__(self):
         self.pool.close()
+
+        if self.browser:
+            WebsiteController.browser.close()
+            WebsiteController.browser = None
 
     def poll_websites(self):
         """Goes around to each website under its control and calls the 'parse()' method on it."""
@@ -38,6 +58,11 @@ class WebsiteController(Process):
         #     return parsings
         # except Exception as e:
         #     print(e)
+
+        if not self.logged_in:
+            login(self.browser, self.username, self.password)
+            self.logged_in = True
+
         for p in self.parsers:
             for r in p.parse():
                 try:
