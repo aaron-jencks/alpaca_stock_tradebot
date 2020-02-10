@@ -19,46 +19,20 @@ class TradeController {
 
 StockDescriptor "1..*" .. "1" TradeController : < Manages
 
-object website {
-    + name
-    + price
-}
-
-class WebsiteDescriptor {
-    + Day of year
-    + Year
-}
-
-website "1" .. "1" WebsiteDescriptor : < describes
-
-class WebsiteParser {
-    + url : string
-    + parse() : WebsiteDescriptor[]
-}
-
-WebsiteParser "1" .. "0..*" WebsiteDescriptor : > creates
-
-class WebsiteController {
-    + sites : WebsiteParser[]
-    + pollWebsites() : WebsiteDescriptor[]
-}
-
-WebsiteController "1" .. "1..*" WebsiteParser : > Controls
-
 class DataMonitor {
     + data : DataFrame
-    + append(site : WebsiteDescriptor)
+    + append(stock : StockDescriptor)
+    + update_prices()
 }
 
 TradeController "1" .. "1" DataMonitor : < Triggers
-
-WebsiteController "1" .. "1" DataMonitor : > Triggers
+StockDescriptor "0..*" .. "1" DataMonitor : < Monitors
 
 class Timer {
     + interval : int
 }
 
-Timer "1" .. "1" WebsiteController : > Triggers
+Timer "1" .. "1" DataMonitor : > Triggers
 
 class DataLogger {
     + data : DataFrame
