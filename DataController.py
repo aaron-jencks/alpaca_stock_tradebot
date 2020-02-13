@@ -6,7 +6,7 @@ import time
 import pandas as pd
 import numpy as np
 
-from WebsiteDescriptor import WebsiteDescriptor
+from StockDescriptor import StockTransaction
 
 
 class DataController(Process):
@@ -35,7 +35,7 @@ class DataController(Process):
             # Writes the header row if the file is new
             if initialize:
                 row = ''
-                for h in WebsiteDescriptor.get_headers():
+                for h in StockTransaction.get_headers():
                     row += h.replace('"', '""') + ','
                 rows.append(row[:-1] + '\n')
 
@@ -54,8 +54,8 @@ class DataController(Process):
         self.__data = []  # Clear the data buffer
         print('Saved the file {}'.format(self.filename))
 
-    def append_data(self, datum: WebsiteDescriptor):
-        if datum.name != '':
+    def append_data(self, datum: StockTransaction):
+        if datum.acronym != '':
             print("Appending {}".format(datum))
             self.__data.append(datum.to_array())
         else:
