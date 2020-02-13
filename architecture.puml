@@ -34,6 +34,16 @@ class Timer {
 
 Timer "1" .. "1" DataMonitor : > Triggers
 
+class StockTransaction {
+    + day_of_year : int
+    + year : int
+    + buy : bool
+}
+
+StockDescriptor "1" .. "0..*" StockTransaction : < Describes a\ntransaction of
+
+StockTransaction "0..*" .. "1" TradeController : < Generates
+
 class DataLogger {
     + data : DataFrame
     + append(trade : StockDescriptor)
@@ -41,5 +51,6 @@ class DataLogger {
 }
 
 DataLogger "1" .. "1" TradeController : < Triggers
+DataLogger "1" .. "0..*" StockTransaction : > Documents
 
 @enduml
