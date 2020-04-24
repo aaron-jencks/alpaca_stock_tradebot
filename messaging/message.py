@@ -113,30 +113,24 @@ class MessageHandler:
 
     mailman = None
 
-    def __init__(self, handler_id: str, msg_mappings: dict = None):
-        self.mappings = msg_mappings if msg_mappings is not None else {}
+    def __init__(self, handler_id: str, subscriptions: list = None):
+        self.subs = subscriptions if subscriptions is not None else []
         self.handler_id = handler_id
 
         if MessageHandler.mailman is None:
             MessageHandler.mailman = MessageMailman()
             MessageHandler.mailman.start()
 
-        MessageHandler.mailman.connect(self.handler_id, list(self.mappings.keys()))
+        MessageHandler.mailman.connect(self.handler_id, self.subs)
 
     def __del__(self):
         MessageHandler.mailman.disconnect(self.handler_id)
-
-    def handle_msg(self, msg: Message):
-        if msg in self.mappings:
-            self.mappings[msg](msg)
 
     def send(self, msg: Message):
         MessageHandler.mailman.send(msg)
 
     def receive(self) -> Message:
         m = MessageHandler.mailman.receive(self.handler_id)
-        if m is not None:
-            self.mappings[m.title](m)
         return m
 
     def join(self):
