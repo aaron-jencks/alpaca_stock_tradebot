@@ -4,7 +4,7 @@ from queue import Empty, Full
 
 
 class Message:
-    def __init__(self, title: str, msg: str, payload: object):
+    def __init__(self, title: str, msg: str = '', payload: object = None):
         self.title = title
         self.msg = msg
         self.payload = payload
@@ -12,6 +12,8 @@ class Message:
     def __eq__(self, other):
         if isinstance(other, Message):
             return self.title == other.title
+        elif isinstance(other, str):
+            return self.title == other
 
     def __str__(self) -> str:
         return self.title + " " + self.msg + " " + json.dumps(self.payload)
@@ -30,9 +32,9 @@ class Message:
 
 
 class MessageMailman(Process):
-    def __init__(self, incoming: Queue):
+    def __init__(self, incoming: Queue = None):
         super().__init__()
-        self.rx = incoming
+        self.rx = incoming if incoming is not None else Queue()
         self.tx = Queue()
         self.receive_lock = Lock()
         self.update_q = Queue()
@@ -48,7 +50,7 @@ class MessageMailman(Process):
             try:
                 msg = self.rx.get_nowait()
                 for s in self.slots.keys():
-                    if msg in self.slots[s]['subscriptions']:
+                    if msg.title in self.slots[s]['subscriptions']:
                         try:
                             self.slots[s]['queue'].put_nowait(msg)
                         except Full as _:
@@ -78,6 +80,9 @@ class MessageMailman(Process):
                             self.tx.put(self.slots[update.msg]['queue'].get_nowait())
                         except Empty as _:
                             self.tx.put(None)
+                elif update.title == 'exit':
+                    print('Mailman exitting')
+                    break
             except Empty as _:
                 pass
 
@@ -105,19 +110,65 @@ class MessageMailman(Process):
 
 
 class MessageHandler:
-    def __init__(self, msg_mappings: dict):
-        self.mappings = msg_mappings
+
+    mailman = None
+
+    def __init__(self, handler_id: str, msg_mappings: dict = None):
+        self.mappings = msg_mappings if msg_mappings is not None else {}
+        self.handler_id = handler_id
+
+        if MessageHandler.mailman is None:
+            MessageHandler.mailman = MessageMailman()
+            MessageHandler.mailman.start()
+
+        MessageHandler.mailman.connect(self.handler_id, list(self.mappings.keys()))
+
+    def __del__(self):
+        MessageHandler.mailman.disconnect(self.handler_id)
 
     def handle_msg(self, msg: Message):
         if msg in self.mappings:
             self.mappings[msg](msg)
 
+    def send(self, msg: Message):
+        MessageHandler.mailman.send(msg)
+
+    def receive(self) -> Message:
+        m = MessageHandler.mailman.receive(self.handler_id)
+        if m is not None:
+            self.mappings[m.title](m)
+        return m
+
+    def join(self):
+        self.send(Message('exit'))
+        MessageHandler.mailman.update_q.put(Message('exit'))
+        MessageHandler.mailman.join()
+
 
 if __name__ == '__main__':
     print('Testing message class')
+
     msg = Message('something', 'something_else', {'name': 'name'})
     msg2 = Message('something', 'something_else', {'who': 'knows'})
     assert msg == msg2
+
     msg3 = Message.from_str('something something_else { "name" : "name" }')
     assert msg == msg3
     print("{}".format(msg))
+    print('Testing messaging functionality')
+    import time
+
+    def test1_output(m: Message):
+        print("This is test message 1")
+
+    handler_1 = MessageHandler('handler 1', {'test1': test1_output})
+    handler_2 = MessageHandler('handler 2')
+
+    time.sleep(1)  # To account for asynchronousness
+    handler_2.send(Message('test1'))
+
+    print('waiting for test message')
+    while handler_1.receive() is None:
+        pass
+
+    handler_2.join()
