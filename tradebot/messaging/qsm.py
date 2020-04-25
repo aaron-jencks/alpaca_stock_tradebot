@@ -1,7 +1,7 @@
 from multiprocessing import Process, Queue
 from queue import Full, Empty
 
-from message import MessageHandler
+from .message import MessageHandler
 
 
 class QSM(Process):
@@ -80,7 +80,7 @@ class QSM(Process):
 
 
 if __name__ == '__main__':
-    from message import Message
+    from .message import Message
 
 
     class TestQSM(QSM):
