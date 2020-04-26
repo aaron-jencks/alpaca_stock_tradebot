@@ -9,7 +9,7 @@ from tradebot.objects.stockdescriptor import StockDescriptor
 
 class PyrhAdapter(QSM):
     def __init__(self, name: str = 'pyrh_adapter'):
-        super().__init__(name, ['pyrh_request'])
+        super().__init__(name, ['pyrh_request', 'trade'])
         self.rbn = Robinhood()
         self.logged_in = False
         self.requests = Queue()
@@ -21,6 +21,10 @@ class PyrhAdapter(QSM):
         self.mappings['quote'] = self.quote
         self.mappings['buy'] = self.buy
         self.mappings['stop'] = self.sell
+
+    def trade_msg(self, msg: Message):
+        transaction = msg.payload
+        self.handler.send('pyrh_request', 'buy' if transaction.buy else 'sell', transaction)
 
     def pyrh_request_msg(self, msg: Message):
         if msg.msg == 'logout':
