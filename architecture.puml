@@ -2,11 +2,17 @@
 
 object stock {
     + acronym
-    + price
+    + buy_price
+    + sell_price
 }
 
 class StockDescriptor {
     + shares
+}
+
+class LimitDescriptor {
+    + sell_price
+    + buy_price
 }
 
 stock "1" .. "1" StockDescriptor : < describes
@@ -19,14 +25,25 @@ class TradeController {
 
 StockDescriptor "1..*" .. "1" TradeController : < Manages
 
+class PyrhAdapter {
+    - rbn: Robinhood
+    - login()
+    + place_buy()
+    + place_sell()
+    + get_quote()
+}
+
 class DataMonitor {
-    + data : DataFrame
+    + limits : dict<string, LimitDescriptor>
+    + stocks : StockDescriptor[]
     + append(stock : StockDescriptor)
     + update_prices()
 }
 
 TradeController "1" .. "1" DataMonitor : < Triggers
 StockDescriptor "0..*" .. "1" DataMonitor : < Monitors
+LimitDescriptor "0..*" .. "1" DataMonitor : < Uses
+PyrhAdapter "1" .. "1" DataMonitor : < Interfaces with
 
 class Timer {
     + interval : int

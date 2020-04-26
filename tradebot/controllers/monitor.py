@@ -36,5 +36,6 @@ class StockMonitor(QSM):
     def check_triggers(self):
         for s in self.stocks:
             if s.ask_price < self.limits[s.acronym].buy_price:
+                self.handler.send(Message('trade_control', 'buy', s))
+            elif s.bid_price > self.limits[s.acronym].sell_price:
                 self.handler.send(Message('trade_control', 'sell', s))
-                self.handler.send(Message(''))

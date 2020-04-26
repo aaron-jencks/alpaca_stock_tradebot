@@ -1,4 +1,4 @@
 
 username = 'Your username here'
 password = 'Your password here'
-verification_method = "text"
+verification_method = "email"

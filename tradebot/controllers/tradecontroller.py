@@ -24,9 +24,11 @@ class TradeController(QSM):
             self.append_state('sell_stock', msg.payload)
 
     def buy_stock(self, s: StockDescriptor):
-        self.handler.send(Message('trade', self.name, StockTransaction(s.acronym, True, s.price, s.shares)))
+        self.handler.send(Message('trade', self.name, StockTransaction(s.acronym, True,
+                                                                       s.bid_price, s.ask_price, s.shares)))
         print("Buying {}".format(s))
 
     def sell_stock(self, s: StockDescriptor):
-        self.handler.send(Message('trade', self.name, StockTransaction(s.acronym, False, s.price, s.shares)))
+        self.handler.send(Message('trade', self.name, StockTransaction(s.acronym, False,
+                                                                       s.bid_price, s.ask_price, s.shares)))
         print("Selling {}".format(s))
