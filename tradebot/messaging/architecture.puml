@@ -1,0 +1,55 @@
+@startuml "Domain Model Diagram"
+
+class Message {
+    + title: string
+    + msg: string
+    + payload: object
+    + from_str(s: string)
+}
+
+class MessageMailman {
+    + rx: Queue
+    + tx: Queue
+    + receive_lock: Lock
+    # update_q: Queue
+    # slots: dict<string, Queue>
+
+    + connect(handler_id: string, subscription_list: list)
+    + disconnect(handler_id: string)
+    + subscribe(handler_id: string, msg: string)
+    + unsubscribe(handler_id: string, msg: string)
+    + send(msg: Message)
+    + receive(handler_id: string)
+}
+
+Message "0..*" .. "1" MessageMailman : < Distributes
+
+class MessageHandler {
+    # mailman: MessageMailman
+    + subs: string[]
+    + handler_id: string
+
+    + send(msg: Message)
+    + receive()
+    + join()
+}
+
+Message "0..*" .. "1..*" MessageHandler : < Consumes
+MessageMailman "1" .. "1..*" MessageHandler : < Communicates\nwith
+
+class QSM {
+    # handler: MessageHandler
+    - states: Queue
+
+    # setup_states()
+    # setup_msg_states()
+
+    # initial_state()
+    # idle_state()
+    # exit_state()
+    # final_state()
+}
+
+MessageHandler "1" .. "1" QSM : < Communicates\nvia
+
+@enduml
