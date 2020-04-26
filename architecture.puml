@@ -33,6 +33,8 @@ class PyrhAdapter {
     + get_quote()
 }
 
+TradeController "1" .. "1" PyrhAdapter : > Triggers
+
 class DataMonitor {
     + limits : dict<string, LimitDescriptor>
     + stocks : StockDescriptor[]
@@ -61,13 +63,12 @@ StockDescriptor "1" .. "0..*" StockTransaction : < Describes a\ntransaction of
 
 StockTransaction "0..*" .. "1" TradeController : < Generates
 
-class DataLogger {
-    + data : DataFrame
-    + append(trade : StockDescriptor)
-    + save(filename : string)
+class DataController {
+    + filename: string
+    - export_data(t: StockTransaction)
 }
 
-DataLogger "1" .. "1" TradeController : < Triggers
-DataLogger "1" .. "0..*" StockTransaction : > Documents
+DataController "1" .. "1" TradeController : < Triggers
+DataController "1" .. "0..*" StockTransaction : > Documents
 
 @enduml

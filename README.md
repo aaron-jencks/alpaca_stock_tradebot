@@ -12,15 +12,22 @@ To use the software all you have to do is run [main.py](./main.py).
 
 ## [Configuration](#Configuration)
 
-To use your account the program needs your login credentials, these credentials can be entered into [login.py](./login.py)
+To use the software, you obviously need to be able to login to Robinhood, which means that you need an account.
+ The first time that you try to perform a transaction, the software will prompt you for your username, password.
+ You can control which stocks you monitor by editing the configuration file [stocks.txt](./stocks.txt)
+ 
+### [Development](#Development)
 
-To configure the websites that it uses modify the list inside of [defs.py](./defs.py)
-To configure the stocks that you'd like to make available for trade, add them to the list inside of [defs.py](./defs.py)
-To configure the algorithms that the bot uses to determine when to buy and sell stock, you can adjust the settings inside of [data_monitor.py](./data_monitor.py)
+The entire source code is housed in the [tradebot](./tradebot) directory.
 
-To define your own parsers, see the [WebsiteParser.py](./WebsiteParser.py) file.
+If you want to develope your own bot, then you'll probably need to know how the messaging system works. 
+See the [messaging](./tradebot/messaging/) directory for more information
 
-More coming soon
+You can find `timer_relay.py` and `pyrh_adapter.py` in the [adapters](./tradebot/adapters) folder.
+
+You can find all of the QSM modules in the [controllers](./tradebot/controllers) folder
+
+You can find the descriptor objects and classes in the [objects](./tradebot/objects) folder
 
 # [Module Breakdown](#Module-Breakdown)
 The project architecture is broken down as follows [[source]](./architecture.puml):
