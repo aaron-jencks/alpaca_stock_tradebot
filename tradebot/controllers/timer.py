@@ -16,6 +16,7 @@ class Timer(QSM):
         self.start_time = time.time()
 
     def setup_states(self):
+        super().setup_states()
         self.mappings['trigger'] = self.trigger_state
 
     def initial_state(self):

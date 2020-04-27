@@ -36,7 +36,8 @@ class QSM(Process):
         """Sets up the self.msg_map dictionary, mapping message titles to state names,
         by default, appends '_msg' to msg_list entries"""
         for m in msg_list:
-            self.msg_map[m] = m + '_msg'
+            print('Setting up message state for {}'.format(m))
+            self.mappings[m] = 'self.' + m + '_msg'
 
     def setup_states(self):
         """Sets up the self.mappings dictionary, mapping state names to state methods,
@@ -66,7 +67,7 @@ class QSM(Process):
         """This is the state the is triggered when the state machine has nowhere to go to."""
         m = self.handler.receive()
         if m is not None:
-            self.append_state(self.msg_map[m.title], m)
+            self.append_state(m.title, m)
 
     def exit_state(self):
         """This stateis triggered when the qsm should exit, enqueues the 'final' state"""
