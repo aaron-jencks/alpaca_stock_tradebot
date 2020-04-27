@@ -1,7 +1,7 @@
 from multiprocessing import Process, Queue
 from queue import Full, Empty
 
-from .message import MessageHandler
+from tradebot.messaging.message import MessageHandler
 
 
 class QSM(Process):
@@ -12,7 +12,7 @@ class QSM(Process):
         self.mappings = {}
         self.setup_states()
 
-        self.msg_map = {}
+        self.msg_list = msg_list
         self.setup_msg_mappings(msg_list)
 
         self.handler = None  # MessageHandler(name, self.msg_map)
@@ -20,7 +20,7 @@ class QSM(Process):
         self.append_state('init')
 
     def run(self) -> None:
-        self.handler = MessageHandler(self.name, self.msg_map)  # Because otherwise we can't join from 'final'
+        self.handler = MessageHandler(self.name, self.msg_list)  # Because otherwise we can't join from 'final'
         while not self.is_exitting:
             try:
                 s = self.states.get_nowait()
@@ -36,8 +36,8 @@ class QSM(Process):
         """Sets up the self.msg_map dictionary, mapping message titles to state names,
         by default, appends '_msg' to msg_list entries"""
         for m in msg_list:
-            print('Setting up message state for {}'.format(m))
-            self.mappings[m] = 'self.' + m + '_msg'
+            # print('Setting up message state for {} to {}'.format(m, eval('self.' + m + '_msg')))
+            self.mappings[m] = eval('self.' + m + '_msg')
 
     def setup_states(self):
         """Sets up the self.mappings dictionary, mapping state names to state methods,
@@ -67,6 +67,7 @@ class QSM(Process):
         """This is the state the is triggered when the state machine has nowhere to go to."""
         m = self.handler.receive()
         if m is not None:
+            print('Received message {}'.format(m))
             self.append_state(m.title, m)
 
     def exit_state(self):
@@ -81,19 +82,16 @@ class QSM(Process):
 
 
 if __name__ == '__main__':
-    from .message import Message
+    from tradebot.messaging.message import Message
 
 
     class TestQSM(QSM):
         def __init__(self, name: str):
             super().__init__(name, ['test'])
 
-        def setup_states(self):
-            super().setup_states()
-            self.mappings['test_msg'] = self.test_msg
-
         def initial_state(self):
             self.handler.send(Message('test'))
+            print('Sent test message')
 
         def test_msg(self, msg: Message):
             print('This is the test message')

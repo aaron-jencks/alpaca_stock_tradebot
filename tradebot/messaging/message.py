@@ -49,10 +49,13 @@ class MessageMailman(Process):
         while True:
             try:
                 msg = self.rx.get_nowait()
+                # print('Mailman received {}'.format(msg))
                 for s in self.slots.keys():
+                    # print('Checking {}\'s subscriptions list'.format(s))
                     if msg.title in self.slots[s]['subscriptions']:
                         try:
                             self.slots[s]['queue'].put_nowait(msg)
+                            # print('Placed msg into {}\'s mailbox'.format(s))
                         except Full as _:
                             print('{} is full, skipping'.format(s))
             except Empty as _:
@@ -81,7 +84,7 @@ class MessageMailman(Process):
                         except Empty as _:
                             self.tx.put(None)
                 elif update.title == 'exit':
-                    print('Mailman exitting')
+                    print('Mailman exiting')
                     break
             except Empty as _:
                 pass
@@ -155,7 +158,7 @@ if __name__ == '__main__':
     def test1_output(m: Message):
         print("This is test message 1")
 
-    handler_1 = MessageHandler('handler 1', {'test1': test1_output})
+    handler_1 = MessageHandler('handler 1', ['test1'])
     handler_2 = MessageHandler('handler 2')
 
     time.sleep(1)  # To account for asynchronousness
@@ -164,5 +167,7 @@ if __name__ == '__main__':
     print('waiting for test message')
     while handler_1.receive() is None:
         pass
+
+    test1_output(None)
 
     handler_2.join()
