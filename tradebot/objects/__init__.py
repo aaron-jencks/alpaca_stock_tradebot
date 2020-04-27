@@ -1,2 +1,2 @@
 
-__all__ = ['stockdescriptor']
+__all__ = ['stockdescriptor', 'limitdescriptor']

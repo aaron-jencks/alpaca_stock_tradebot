@@ -6,7 +6,9 @@ from tradebot.adapters.pyrh_adapter import PyrhAdapter
 
 
 class StockMonitor(QSM):
-    def __init__(self, name: str, managed_stocks: list = None, stock_limits: dict = None, robinhood_adapter: PyrhAdapter = None):
+    def __init__(self, name: str,
+                 managed_stocks: list = None, stock_limits: dict = None,
+                 robinhood_adapter: PyrhAdapter = None):
         super().__init__(name, ['monitor_config'])
         self.stocks = managed_stocks if managed_stocks is not None else []
         self.limits = stock_limits if stock_limits is not None else {}
@@ -32,6 +34,8 @@ class StockMonitor(QSM):
             quote = self.adapter.get_quote(s.acronym)
             s.ask_price = quote['ask_price']
             s.bid_price = quote['bid_price']
+            print('Updated {}'.format(s))
+        self.append_state('check_triggers')
 
     def check_triggers(self):
         for s in self.stocks:
