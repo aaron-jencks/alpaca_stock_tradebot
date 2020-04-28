@@ -5,13 +5,15 @@ from queue import Full, Empty
 from tradebot.messaging.qsm import QSM
 from tradebot.messaging.message import Message
 from tradebot.objects.stockdescriptor import StockDescriptor
+from login import username, password, verification_method
 
 
 class PyrhAdapter(QSM):
-    def __init__(self, name: str = 'pyrh_adapter'):
-        super().__init__(name, ['pyrh_request', 'trade'])
+    def __init__(self, name: str = 'pyrh_adapter', stdin_port: int = 1000):
+        super().__init__(name, ['pyrh_request', 'trade'], stdin_port)
         self.rbn = Robinhood()
         self.logged_in = False
+        self.client_req = Queue()
         self.requests = Queue()
         self.request_lock = Lock()
 
@@ -21,6 +23,15 @@ class PyrhAdapter(QSM):
         self.mappings['quote'] = self.quote
         self.mappings['buy'] = self.buy
         self.mappings['stop'] = self.sell
+
+    def idle_state(self):
+        try:
+            req = self.client_req.get_nowait()
+            self.append_state('pyrh_request', req)
+        except Empty as _:
+            pass
+
+        super().idle_state()
 
     def trade_msg(self, msg: Message):
         transaction = msg.payload
@@ -47,8 +58,8 @@ class PyrhAdapter(QSM):
 
     def login(self):
         while True:
-            user = input('Username(email): ')
-            pwd = input('Password: ')
+            user = username  # input('Username(email): ')
+            pwd = password  # input('Password: ')
             if self.rbn.login(user, pwd):
                 print('Logged in successfully')
                 self.logged_in = True
@@ -69,13 +80,13 @@ class PyrhAdapter(QSM):
 
     def get_quote(self, acronym: str) -> dict:
         self.request_lock.acquire()
-        self.handler.send(Message('pyrh_request', 'quote', acronym))
+        self.client_req.put(Message('pyrh_request', 'quote', acronym))
         d = self.requests.get()
         self.request_lock.release()
         return d
 
     def place_buy(self, s: StockDescriptor):
-        self.handler.send(Message('pyrh_request', 'buy', s))
+        self.client_req.put(Message('pyrh_request', 'buy', s))
 
     def place_sell(self, s: StockDescriptor):
-        self.handler.send(Message('pyrh_request', 'sell', s))
+        self.client_req.put(Message('pyrh_request', 'sell', s))

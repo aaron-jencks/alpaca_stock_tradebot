@@ -1,13 +1,18 @@
 from multiprocessing import Process, Queue
 from queue import Full, Empty
+import multiprocessing.connection
+from io import TextIOBase
+import sys
 
 from tradebot.messaging.message import MessageHandler
+from tradebot.messaging.socket_console_interaction import SocketConsoleClient
 
 
 class QSM(Process):
-    def __init__(self, name: str, msg_list: list = None):
+    def __init__(self, name: str, msg_list: list = None, stdin_port: int = 1000):
         super().__init__()
         self.is_exitting = False
+        self.port = stdin_port
 
         self.mappings = {}
         self.setup_states()
@@ -20,6 +25,7 @@ class QSM(Process):
         self.append_state('init')
 
     def run(self) -> None:
+        sys.stdin = SocketConsoleClient(self.port)  # Allows for calls to 'input()'
         self.handler = MessageHandler(self.name, self.msg_list)  # Because otherwise we can't join from 'final'
         while not self.is_exitting:
             try:
