@@ -1,118 +1,128 @@
-from multiprocessing import Process, Queue
-from queue import Full, Empty
-from io import TextIOBase
-import socket
-import selectors
+from multiprocessing import Process, Pipe, Lock
+from multiprocessing.connection import Connection
+from typing import Optional
 
 
-class SocketConsoleClient(TextIOBase):
-    def __init__(self, port: int):
-        self.port = port
-        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.conn.connect((socket.gethostbyname('localhost'), self.port))
-        self.selector = selectors.DefaultSelector()
-        self.conn.setblocking(False)
-        self.selector.register(self.conn, selectors.EVENT_WRITE, data='hello')
-
-    def readline(self, size: int = ...) -> str:
-        while True:
-            for k, _ in self.selector.select(timeout=None):
-                if k.data == 'hello':
-                    try:
-                        return str(self.conn.recv(1024).decode('latin1'))
-                    except Exception as e:
-                        # print(e)
-                        continue
-
-
-class SocketConsoleWriter(Process):
-    def __init__(self):
+class ConsoleJunction(Process):
+    def __init__(self, incoming: Connection):
         super().__init__()
-        self.writes = Queue()
-        self.connections = []
-        self.listener = None
-        self.selector = None
-
-        self.port = 10000
+        self.connections = {}
+        self.incoming = incoming
+        i, o = Pipe(True)
+        self.requests = i
+        self.__requests = o
+        self.req_lock = Lock()
+        self.is_stopping = False
 
     def run(self) -> None:
-        while True:
-            try:
-                self.listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.listener.bind((socket.gethostbyname('localhost'), self.port))
-                self.listener.listen()
-                print('listening on', ('localhost', self.port))
-                self.listener.setblocking(False)
-                break
-            except Exception as _:
-                self.port += 1  # if errno is 98, then port is not available.
+        while not self.is_stopping:
+            while self.incoming.poll():
+                msg = self.incoming.recv()
+                for c in self.connections.values():
+                    c.send(msg)
 
-        self.selector = selectors.DefaultSelector()
-        self.selector.register(self.listener, selectors.EVENT_READ, data='test')
+            while self.__requests.poll():
+                cmd = self.__requests.recv()
+                if cmd['msg'] == 'connect':
+                    i, o = Pipe()
+                    self.connections[cmd['payload']] = i
+                    self.__requests.send(o)
+                elif cmd['msg'] == 'disconnect':
+                    if cmd['payload'] in self.connections:
+                        self.connections[cmd['payload']].close()
+                elif cmd['msg'] == 'exit':
+                    self.is_stopping = True
+                    print('Console Junction is exitting')
 
-        while True:
-            try:
-                w = self.writes.get_nowait()
-                if w == '$$$EXIT!!!':
-                    break
-                else:
-                    for c in self.connections:
-                        c.send(w.encode('latin1'))
-            except Empty:
-                pass
+    def connect(self, client_id: str) -> Connection:
+        self.req_lock.acquire()
+        self.requests.send({'msg': 'connect', 'payload': client_id})
+        while not self.requests.poll(5):
+            pass
+        out = self.requests.recv()
+        self.req_lock.release()
+        return out
 
-            try:
-                d = self.selector.select(1)
-                for k, _ in d:
-                    if k.data == 'test':
-                        conn, addr = self.listener.accept()
-                        print('{} connected'.format(addr))
-                        self.connections.append(conn)
-            except Exception as e:
-                # print(e)
-                pass
+    def disconnect(self, client_id):
+        self.requests.send({'msg': 'disconnect', 'payload': client_id})
+
+    def join(self, timeout: Optional[float] = None) -> None:
+        self.requests.send({'msg': 'exit'})
+        super().join()
 
 
-class SocketConsoleServer:
+class ConsoleServer:
 
-    server = None
+    junction = None
+    outgoing = None
 
     def __init__(self):
-        if SocketConsoleServer.server is None:
-            SocketConsoleServer.server = SocketConsoleWriter()
-            SocketConsoleServer.server.start()
+        if ConsoleServer.junction is None:
+            ConsoleServer.setup_junction()
 
     @staticmethod
-    def port() -> int:
-        if SocketConsoleServer.server is None:
-            SocketConsoleServer.server = SocketConsoleWriter()
-            SocketConsoleServer.server.start()
-
-        return SocketConsoleServer.server.port
+    def setup_junction():
+        i, o = Pipe()
+        ConsoleServer.outgoing = i
+        ConsoleServer.junction = ConsoleJunction(o)
+        ConsoleServer.junction.start()
 
     @staticmethod
-    def write(msg: str):
-        if SocketConsoleServer.server is None:
-            SocketConsoleServer.server = SocketConsoleWriter()
-            SocketConsoleServer.server.start()
+    def connect(client_id: str) -> Connection:
+        if ConsoleServer.junction is None:
+            ConsoleServer.setup_junction()
+        return ConsoleServer.junction.connect(client_id)
 
-        SocketConsoleServer.server.writes.put(msg)
+    @staticmethod
+    def disconnect(client_id: str):
+        if ConsoleServer.junction is None:
+            ConsoleServer.setup_junction()
+        ConsoleServer.junction.disconnect(client_id)
+
+    @staticmethod
+    def send(msg: str):
+        if ConsoleServer.junction is None:
+            ConsoleServer.setup_junction()
+        ConsoleServer.outgoing.send(msg)
+
+    @staticmethod
+    def join():
+        if ConsoleServer.junction is not None:
+            ConsoleServer.junction.join()
+            ConsoleServer.outgoing.close()
+
+
+class ConsoleClient:
+    def __init__(self, client_id: str):
+        self.incoming = ConsoleServer.connect(client_id)
+        self.client_id = client_id
+
+    def readline(self) -> str:
+        self.incoming.poll(None)
+        return self.incoming.recv()
+
+    def close(self):
+        ConsoleServer.disconnect(self.client_id)
+        self.incoming.close()
 
 
 if __name__ == '__main__':
-    import sys, time
+    import sys
 
-    serv = SocketConsoleServer()
-    time.sleep(1)
 
-    class TestProcessSocket(Process):
-        def run(self):
-            sys.stdin = SocketConsoleClient(serv.port())
-            time.sleep(1)
-            print(input())
+    class TestProcess(Process):
+        def __init__(self, name: str):
+            super().__init__()
+            self.client = ConsoleClient(name)
 
-    client = TestProcessSocket()
-    client.start()
+        def run(self) -> None:
+            sys.stdin = self.client
+            while True:
+                print(input('Please type something'))
 
-    serv.write(input('Type something: ') + '\n')
-    client.join()
+
+    c = TestProcess('test1')
+    c.start()
+
+    while True:
+        ConsoleServer.send(input())
