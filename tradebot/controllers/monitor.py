@@ -12,6 +12,7 @@ class StockMonitor(QSM):
                  managed_stocks: list = None, stock_limits: dict = None,
                  robinhood_adapter: PyrhAdapter = None):
         super().__init__(name, ['monitor_config'])
+        self.history = managed_stocks if managed_stocks is not None else []
         self.stocks = managed_stocks if managed_stocks is not None else []
         self.limits = stock_limits if stock_limits is not None else {}
         self.adapter = robinhood_adapter if robinhood_adapter is not None else PyrhAdapter()
@@ -43,8 +44,8 @@ class StockMonitor(QSM):
         self.append_state('check_triggers')
 
     def check_triggers(self):
-        for s in self.stocks:
-            if s.ask_price < self.limits[s.acronym].buy_price:
+        for i, s in enumerate(self.stocks):
+            if self.limits[s.acronym].check_buy(self.history[i].bid_price, s.ask_price):
                 self.handler.send(Message('trade_control', 'buy', s))
-            elif s.bid_price > self.limits[s.acronym].sell_price:
+            elif self.limits[s.acronym].check_sell(self.history[i].ask_price, s.bid_price):
                 self.handler.send(Message('trade_control', 'sell', s))

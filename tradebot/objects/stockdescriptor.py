@@ -10,9 +10,6 @@ class Stock:
     def __str__(self):
         return '{}: ${}/${}'.format(self.acronym, self.ask_price, self.bid_price)
 
-    def to_dict(self):
-        return {'acronym': self.acronym, 'ask': self.ask_price, 'bid': self.bid_price}
-
 
 class StockDescriptor(Stock):
     def __init__(self, acronym: str, buy_price: float = 0, sell_price: float = 0, shares: int = 1):
@@ -21,11 +18,6 @@ class StockDescriptor(Stock):
 
     def __str__(self):
         return '{}: ${}/${} x {}'.format(self.acronym, self.ask_price, self.bid_price, self.shares)
-
-    def to_dict(self):
-        d = super().to_dict()
-        d['shares'] = self.shares
-        return d
 
 
 class StockTransaction(StockDescriptor):
@@ -39,13 +31,6 @@ class StockTransaction(StockDescriptor):
         return '{}/{} {} {} x {} for ${}'.format(self.doy, self.year,
                                                  'Buy' if self.buy else 'Sell', self.acronym, self.shares,
                                                  self.ask_price if self.buy else self.bid_price)
-
-    def to_dict(self):
-        d = super().to_dict()
-        d['buy'] = 1 if self.buy else 0
-        d['doy'] = self.doy
-        d['year'] = self.year
-        return d
 
     @staticmethod
     def get_headers() -> list:
