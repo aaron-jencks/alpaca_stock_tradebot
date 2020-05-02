@@ -9,8 +9,8 @@ from login import username, password, verification_method
 
 
 class PyrhAdapter(QSM):
-    def __init__(self, name: str = 'pyrh_adapter', stdin_port: int = 1000):
-        super().__init__(name, ['pyrh_request', 'trade'], stdin_port)
+    def __init__(self, name: str = 'pyrh_adapter'):
+        super().__init__(name, ['pyrh_request', 'trade'])
         self.rbn = Robinhood()
         self.logged_in = False
         self.client_req = Queue()

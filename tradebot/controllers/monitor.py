@@ -10,11 +10,11 @@ from tradebot.adapters.pyrh_adapter import PyrhAdapter
 class StockMonitor(QSM):
     def __init__(self, name: str,
                  managed_stocks: list = None, stock_limits: dict = None,
-                 robinhood_adapter: PyrhAdapter = None, stdin_port: int = 1000):
-        super().__init__(name, ['monitor_config'], stdin_port)
+                 robinhood_adapter: PyrhAdapter = None):
+        super().__init__(name, ['monitor_config'])
         self.stocks = managed_stocks if managed_stocks is not None else []
         self.limits = stock_limits if stock_limits is not None else {}
-        self.adapter = robinhood_adapter if robinhood_adapter is not None else PyrhAdapter(stdin_port=stdin_port)
+        self.adapter = robinhood_adapter if robinhood_adapter is not None else PyrhAdapter()
         if robinhood_adapter is None:
             self.adapter.start()
             time.sleep(1)
