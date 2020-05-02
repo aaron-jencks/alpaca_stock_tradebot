@@ -22,7 +22,7 @@ class PyrhAdapter(QSM):
         self.mappings['login'] = self.login
         self.mappings['quote'] = self.quote
         self.mappings['buy'] = self.buy
-        self.mappings['stop'] = self.sell
+        self.mappings['sell'] = self.sell
 
     def idle_state(self):
         try:
@@ -35,7 +35,7 @@ class PyrhAdapter(QSM):
 
     def trade_msg(self, msg: Message):
         transaction = msg.payload
-        self.handler.send('pyrh_request', 'buy' if transaction.buy else 'sell', transaction)
+        self.handler.send(Message('pyrh_request', 'buy' if transaction.buy else 'sell', transaction))
 
     def pyrh_request_msg(self, msg: Message):
         if msg.msg == 'logout':
@@ -50,11 +50,11 @@ class PyrhAdapter(QSM):
         elif msg.msg == 'buy':
             if not self.logged_in:
                 self.append_state('login')
-            self.append_state('buy')
+            self.append_state('buy', msg.payload)
         elif msg.msg == 'sell':
             if not self.logged_in:
                 self.append_state('login')
-            self.append_state('sell')
+            self.append_state('sell', msg.payload)
 
     def login(self):
         while True:

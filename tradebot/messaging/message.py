@@ -16,7 +16,7 @@ class Message:
             return self.title == other
 
     def __str__(self) -> str:
-        return self.title + " " + self.msg + " " + json.dumps(self.payload)
+        return self.title + " " + self.msg + " " + str(self.payload)
 
     @staticmethod
     def from_str(data: str) -> object:
