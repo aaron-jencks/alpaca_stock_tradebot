@@ -1,6 +1,8 @@
 from pyrh import Robinhood
 from multiprocessing import Queue, Lock
 from queue import Full, Empty
+from http.client import RemoteDisconnected
+import time
 
 from tradebot.messaging.qsm import QSM
 from tradebot.messaging.message import Message
@@ -68,7 +70,16 @@ class PyrhAdapter(QSM):
             continue
 
     def quote(self, acronym: str):
-        self.requests.put(self.rbn.get_quote(acronym))
+        while True:
+            try:
+                self.requests.put(self.rbn.get_quote(acronym))
+                break
+            except Full as _:
+                print('requests queue is full, skipping...')
+                break
+            except Exception as _:
+                print('Something went wrong, trying again')
+                time.sleep(5)
 
     def buy(self, descriptor: StockDescriptor):
         # self.rbn.place_buy_order(self.rbn.get_quote(descriptor.acronym)['instrument'], descriptor.shares)

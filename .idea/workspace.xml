@@ -21,14 +21,16 @@
   <component name="ChangeListManager">
     <list default="true" id="f39238ef-288b-4a63-90ef-94c780ddc12a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Domain_Model_Diagram.png" beforeDir="false" afterPath="$PROJECT_DIR$/Domain_Model_Diagram.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/architecture.puml" beforeDir="false" afterPath="$PROJECT_DIR$/architecture.puml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/login.py" beforeDir="false" afterPath="$PROJECT_DIR$/login.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stocks.txt" beforeDir="false" afterPath="$PROJECT_DIR$/stocks.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tradebot/adapters/timer_relay.py" beforeDir="false" afterPath="$PROJECT_DIR$/tradebot/adapters/timer_relay.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tradebot/controllers/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/tradebot/controllers/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tradebot/adapters/pyrh_adapter.py" beforeDir="false" afterPath="$PROJECT_DIR$/tradebot/adapters/pyrh_adapter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tradebot/controllers/datacontroller.py" beforeDir="false" afterPath="$PROJECT_DIR$/tradebot/controllers/datacontroller.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tradebot/controllers/monitor.py" beforeDir="false" afterPath="$PROJECT_DIR$/tradebot/controllers/monitor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tradebot/objects/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/tradebot/objects/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tradebot/objects/limitdescriptor.py" beforeDir="false" afterPath="$PROJECT_DIR$/tradebot/objects/limitdescriptor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tradebot/controllers/timer.py" beforeDir="false" afterPath="$PROJECT_DIR$/tradebot/controllers/timer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tradebot/objects/stockdescriptor.py" beforeDir="false" afterPath="$PROJECT_DIR$/tradebot/objects/stockdescriptor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,7 +59,8 @@
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/tradebot/messaging" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
@@ -87,7 +90,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="message" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="pipe_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="robinhood_tradebot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -95,11 +98,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/messaging" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/messaging/message.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipe_test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -116,11 +119,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/messaging" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tradebot/messaging" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/messaging/qsm.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tradebot/messaging/qsm.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -129,7 +132,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="timer (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="socket_console_interaction" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="robinhood_tradebot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -137,11 +140,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tradebot/controllers" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tradebot/messaging" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tradebot/controllers/timer.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tradebot/messaging/socket_console_interaction.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -150,7 +153,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="timer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="socket_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="robinhood_tradebot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -158,11 +161,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/controllers" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/controllers/timer.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/socket_test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -174,10 +177,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.main" />
-        <item itemvalue="Python.timer (1)" />
-        <item itemvalue="Python.timer" />
         <item itemvalue="Python.qsm" />
-        <item itemvalue="Python.message" />
+        <item itemvalue="Python.pipe_test" />
+        <item itemvalue="Python.socket_console_interaction" />
+        <item itemvalue="Python.socket_test" />
       </list>
     </recent_temporary>
   </component>
@@ -215,43 +218,43 @@
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="2542" y="143" width="666" height="819" key="#qsm/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587698669567" />
-    <state x="2663" y="277" width="452" height="550" key="FileChooserDialogImpl" timestamp="1587871905585">
+    <state x="2663" y="277" width="452" height="550" key="FileChooserDialogImpl" timestamp="1588467854982">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="743" y="297" width="424" height="484" key="FileChooserDialogImpl/1920.0.1920.1080/0.27.1920.1053@0.27.1920.1053" timestamp="1587500659643" />
-    <state x="2663" y="277" width="452" height="550" key="FileChooserDialogImpl/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587871905585" />
-    <state width="1874" height="275" key="GridCell.Tab.0.bottom" timestamp="1587846896527">
+    <state x="2663" y="277" width="452" height="550" key="FileChooserDialogImpl/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1588467854982" />
+    <state width="1874" height="275" key="GridCell.Tab.0.bottom" timestamp="1588467098109">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1874" height="275" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587846896527" />
-    <state width="1874" height="275" key="GridCell.Tab.0.center" timestamp="1587846896527">
+    <state width="1874" height="275" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1588467098109" />
+    <state width="1874" height="275" key="GridCell.Tab.0.center" timestamp="1588467098108">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1874" height="275" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587846896527" />
-    <state width="1874" height="275" key="GridCell.Tab.0.left" timestamp="1587846896526">
+    <state width="1874" height="275" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1588467098108" />
+    <state width="1874" height="275" key="GridCell.Tab.0.left" timestamp="1588467098108">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1874" height="275" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587846896526" />
-    <state width="1874" height="275" key="GridCell.Tab.0.right" timestamp="1587846896527">
+    <state width="1874" height="275" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1588467098108" />
+    <state width="1874" height="275" key="GridCell.Tab.0.right" timestamp="1588467098109">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1874" height="275" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587846896527" />
-    <state width="1874" height="344" key="GridCell.Tab.1.bottom" timestamp="1587699555334">
+    <state width="1874" height="275" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1588467098109" />
+    <state width="1874" height="340" key="GridCell.Tab.1.bottom" timestamp="1588374546737">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1874" height="344" key="GridCell.Tab.1.bottom/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587699555334" />
-    <state width="1874" height="344" key="GridCell.Tab.1.center" timestamp="1587699555334">
+    <state width="1874" height="340" key="GridCell.Tab.1.bottom/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1588374546737" />
+    <state width="1874" height="340" key="GridCell.Tab.1.center" timestamp="1588374546737">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1874" height="344" key="GridCell.Tab.1.center/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587699555334" />
-    <state width="1874" height="344" key="GridCell.Tab.1.left" timestamp="1587699555334">
+    <state width="1874" height="340" key="GridCell.Tab.1.center/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1588374546737" />
+    <state width="1874" height="340" key="GridCell.Tab.1.left" timestamp="1588374546737">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1874" height="344" key="GridCell.Tab.1.left/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587699555334" />
-    <state width="1874" height="344" key="GridCell.Tab.1.right" timestamp="1587699555334">
+    <state width="1874" height="340" key="GridCell.Tab.1.left/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1588374546737" />
+    <state width="1874" height="340" key="GridCell.Tab.1.right" timestamp="1588374546737">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
-    <state width="1874" height="344" key="GridCell.Tab.1.right/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587699555334" />
+    <state width="1874" height="340" key="GridCell.Tab.1.right/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1588374546737" />
     <state x="2369" y="151" key="SettingsEditor" timestamp="1587699620699">
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
@@ -265,16 +268,5 @@
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="2543" y="257" width="672" height="678" key="search.everywhere.popup/1920.0.1920.1080/0.27.1920.1053@1920.0.1920.1080" timestamp="1587697880222" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/tradebot/messaging/qsm.py</url>
-          <line>98</line>
-          <option name="timeStamp" value="13" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

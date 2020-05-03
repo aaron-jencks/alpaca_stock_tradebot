@@ -17,7 +17,7 @@ if __name__ == '__main__':
         limit_dict[s[0].acronym] = s[1]
 
     print('Creating modules')
-    t = timer.Timer('update_trigger', interval=3600)
+    t = timer.Timer('update_trigger', interval=60)
     relay = TimerRelay('timer_relay', Message('monitor_config', 'update'))
     rx = MessageHandler('receiver', ['monitor_config'])
     p = PyrhAdapter()

@@ -77,3 +77,78 @@ You can find the descriptor objects and classes in the [objects](./tradebot/obje
 The project architecture is broken down as follows [[source]](./architecture.puml):
 
 ![image](./Domain_Model_Diagram.png)
+
+## Contents
+1. [Descriptors](#Descriptors)
+2. [Timers](#Timers)
+3. [DataMonitor](#DataMonitor)
+4. [TradeController](#TradeController)
+5. [DataController](#DataController)
+6. [PYRHAdapter](#PYRHAdapter)
+7. [Queued State Machines and Messaging](./tradebot/messaging)
+
+### [Descriptors](#Descriptors)
+
+This bot contains several descriptor classes used to represent `Stock` objects as they are represented in different aspects.
+
+These classes are:
+
+- [Stock](./tradebot/objects/stockdescriptor.py)
+- [StockDescriptor](./tradebot/objects/stockdescriptor.py)
+- [StockUpdateDescriptor](./tradebot/objects/stockdescriptor.py)
+- [StockTransaction](./tradebot/objects/stockdescriptor.py)
+- [LimitDescriptor](./tradebot/objects/limitdescriptor.py)
+
+#### Stock Descriptors
+
+There are 4 main Stock descriptors, the first is the main class, `Stock`, this class contains the acronym, asking price, and bidding price of the stock.
+ Next is the `StockDescriptor` class, which represents a `Stock`, along with the number of shares. Then comes the `StockUpdateDescriptor`
+ this is a `StockDescriptor` at a specific time, or day. And lastly there is the `StockTransaction` which is a transaction containing a `StockUpdateDescriptor` and a boolean indicating buying/selling.
+ 
+ #### Limit Descriptors
+ 
+ A `LimitDescriptor` indicates a buy/sell limit for a particular `Stock`, it contains two methods.
+ 
+ `check_buy(sell_price: float, ask_price: float)` returns true if the stock should be bought.
+ 
+ `check_sell(buy_price: float, bid_price: float)` returns true if the stock should be sold.
+ 
+ ### [Timers](#Timers)
+ 
+ There are 3 things you should be aware of when it comes to timers, these classes control how often the `StockMonitor` checks the prices of stocks,
+  and can be used for other purposes as well, as you see fit.
+  
+ #### [Timer](./tradebot/controllers/timer.py)
+ 
+ This is your average, everyday timer, it sends out a `Message` once every `interval` seconds.
+ 
+ #### [MarketTimer](./tradebot/controllers/timer.py)
+ 
+ This is an extension of the `Timer` class, it automatically pauses during aftermarket hours and on weekends.
+ 
+ #### [TimerRelay](./tradebot/adapters/timer_relay.py)
+ 
+ This baby is important, it allows you transform a `Timer` `Message` into a different `Message`. Quite handy.
+ 
+ ### [DataMonitor](#DataMonitor)
+ 
+ The `DataMonitor` is the `Process` that constantly monitors `Stock` prices and updates them, it also triggers the `TradeController` to either buy or sell stock.
+ 
+ It sends out `monitor_update` messages containing `StockUpdateDescriptor` objects whenever it changes the price of a `Stock`.
+ 
+ It sends out `trade_control` messages when it determines it is time to either buy or sell a `Stock`.
+ 
+ ### [TradeController](#TradeController)
+ 
+ The `TradeController` is the `Process` that controls exactly what you think it would. `StockTransactions`, `Message`s are sent to this controller and it determines if it's possible to buy or sell the stock, depending on the contents of the message.
+ 
+ It sends out the `trade` message whenever it makes a trade, containing a `StockTransaction` within.
+ 
+ ### [DataController](#DataController)
+ 
+ The `DataController` is the `Process` that monitors and documents data changes, it intercepts `trade` and `monitor_update` messages, and places their entries into
+ either the `transactions` file, or the `price_history` file, by default, these values are `transactions.csv` and `price_history.csv` respectively.
+ 
+ ### [PYRHAdapter](#PYRHAdapter)
+ 
+ The `PyrhAdapter` contains the interface for communicating with Robinhood, the `TradeController` and the `DataMonitor` both interface with this class directly.

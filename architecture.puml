@@ -10,6 +10,13 @@ class StockDescriptor {
     + shares
 }
 
+class StockUpdateDescriptor {
+    + day_of_year : int
+    + year : int
+}
+
+StockDescriptor "1" .. "1" StockUpdateDescriptor : < describes an instance\n in time of
+
 class LimitDescriptor {
     + sell_price
     + buy_price
@@ -51,24 +58,33 @@ class Timer {
     + interval : int
 }
 
-Timer "1" .. "1" DataMonitor : > Triggers
+class MarketTimer {
+    Automatically pauses\noutside of market hours
+}
+
+MarketTimer --|> Timer
+
+MarketTimer "1" .. "1" DataMonitor : > Triggers
 
 class StockTransaction {
-    + day_of_year : int
-    + year : int
     + buy : bool
 }
+
+StockUpdateDescriptor <|-- StockTransaction
 
 StockDescriptor "1" .. "0..*" StockTransaction : < Describes a\ntransaction of
 
 StockTransaction "0..*" .. "1" TradeController : < Generates
 
 class DataController {
-    + filename: string
-    - export_data(t: StockTransaction)
+    + tfilename: string
+    + pfilename: string
+    - export_transaction_data(t: StockTransaction)
+    - export_price_data(t: StockUpdateDescriptor)
 }
 
 DataController "1" .. "1" TradeController : < Triggers
 DataController "1" .. "0..*" StockTransaction : > Documents
+DataController "1" .. "0..*" StockUpdateDescriptor : > Documents
 
 @enduml

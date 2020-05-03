@@ -41,6 +41,8 @@ class StockMonitor(QSM):
             s.ask_price = float(quote['ask_price'])
             s.bid_price = float(quote['bid_price'])
             print('Updated {}'.format(s))
+            self.handler.send(Message('monitor_update', self.name,
+                                      StockUpdateDescriptor(s.acronym, s.bid_price, s.ask_price, s.shares)))
         self.append_state('check_triggers')
 
     def check_triggers(self):

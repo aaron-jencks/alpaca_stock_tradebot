@@ -1,4 +1,5 @@
 import time
+import datetime as dt
 
 from tradebot.messaging.message import Message
 from tradebot.messaging.qsm import QSM
@@ -40,6 +41,18 @@ class Timer(QSM):
         print('Timer {} triggered'.format(self.name))
         self.start_time = time.time()
         time.sleep(self.interval)
+
+
+class MarketTimer(Timer):
+    """A Normal Timer class that automatically pauses during after hours."""
+    def idle_state(self):
+        dow = dt.datetime.now().isoweekday()
+        hour = dt.datetime.now().hour
+        minute = dt.datetime.now().minute
+        if not self.paused and (dow == 6 or dow == 7) and \
+                ((16 < hour < 9) or (hour == 9 and minute < 30)):
+            self.paused = True
+        super().idle_state()
 
 
 if __name__ == "__main__":
