@@ -17,13 +17,13 @@ if __name__ == '__main__':
         limit_dict[s[0].acronym] = s[1]
 
     print('Creating modules')
-    t = timer.Timer('update_trigger', interval=60)
+    t = timer.MarketTimer('update_trigger', interval=60)
     relay = TimerRelay('timer_relay', Message('monitor_config', 'update'))
     rx = MessageHandler('receiver', ['monitor_config'])
     p = PyrhAdapter()
     dm = monitor.StockMonitor('monitor', [t[0] for t in stocks], limit_dict, p)
     dc = datacontroller.DataController('data_controller')
-    tc = tradecontroller.TradeController('trade_controller')
+    tc = tradecontroller.TradeController('trade_controller', 0)
 
     print('Starting modules')
     relay.start()

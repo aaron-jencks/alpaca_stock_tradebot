@@ -49,9 +49,13 @@ class MarketTimer(Timer):
         dow = dt.datetime.now().isoweekday()
         hour = dt.datetime.now().hour
         minute = dt.datetime.now().minute
-        if not self.paused and (dow == 6 or dow == 7) and \
-                ((16 < hour < 9) or (hour == 9 and minute < 30)):
+        if not self.paused and ((dow == 6 or dow == 7) or
+                                ((16 < hour < 9) or (hour == 9 and minute < 30))):
+            print('Pausing Timer')
             self.paused = True
+        elif self.paused and ((dow != 6 and dow != 7) and ((9 < hour < 16) or (hour == 9 and minute >= 30))):
+            print('Unpausing Timer')
+            self.paused = False
         super().idle_state()
 
 
