@@ -1,0 +1,25 @@
+---
+title: "Data Viewer"
+author: Aaron Jencks
+date: 5/4/20
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+```
+
+Type any R code in the chunk, for example:
+```{r}
+stocks = read.csv('./history.csv') %>%
+  group_by(Name) %>%
+  mutate(Seconds_Epoch=Second+(Minute*60)+(Hour*3600)+(Day*86400)+(Year*31536000)) %>%
+  arrange(Seconds_Epoch) # %>%
+  # mutate(dT=)
+stocks %>% ggplot(aes(x=Seconds_Epoch, y=Bid_Price)) + facet_wrap(~Name, scales='free') + geom_point() + geom_smooth() + labs(x='Time (sec)', y='Bid Price')
+```
+
+Now, click the **Run** button on the chunk toolbar to [execute](https://www.jetbrains.com/help/pycharm/r-markdown.html#run-r-code) the chunk code. The result should be placed under the chunk.
+Click the **Knit and Open Document** to built and preview an output.
