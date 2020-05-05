@@ -1,4 +1,4 @@
 
-username = 'YourUsernameHere'
-password = 'YourPasswordHere'
+username = 'aaronjencks@gmail.com'
+password = 'Lethologica1!'
 verification_method = "email"

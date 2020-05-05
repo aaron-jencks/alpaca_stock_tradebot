@@ -14,7 +14,8 @@ To use the software all you have to do is run [main.py](./main.py).
 
 To use the software, you obviously need to be able to login to Robinhood, which means that you need an account.
  The first time that you try to perform a transaction, the software will prompt you for your username, password.
- You can control which stocks you monitor by editing the configuration file [stocks.txt](./stocks.txt)
+ You can control which stocks you monitor by editing the configuration file [stocks.txt](./stocks.txt), additionally you can use the [cli](./cli.md).
+ Your username and password can be configured in [settings.py](./settings.py).
  
 ### [Stocks.txt](#Stocks_txt)
 

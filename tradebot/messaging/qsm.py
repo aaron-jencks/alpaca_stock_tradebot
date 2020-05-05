@@ -12,7 +12,7 @@ class QSM(Process):
     def __init__(self, name: str, msg_list: list = None):
         super().__init__()
         self.is_exitting = False
-        self.cclient = ConsoleClient(name)
+        # self.cclient = ConsoleClient(name)
 
         self.mappings = {}
         self.setup_states()
@@ -25,7 +25,7 @@ class QSM(Process):
         self.append_state('init')
 
     def run(self) -> None:
-        sys.stdin = self.cclient
+        # sys.stdin = self.cclient
         self.handler = MessageHandler(self.name, self.msg_list)  # Because otherwise we can't join from 'final'
         while not self.is_exitting:
             try:
