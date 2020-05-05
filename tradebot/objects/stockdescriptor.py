@@ -25,6 +25,9 @@ class StockUpdateDescriptor(StockDescriptor):
         super().__init__(acronym, buy_price, sell_price, shares)
         self.doy = dt.datetime.now().timetuple().tm_yday
         self.year = dt.date.today().year
+        self.hour = dt.datetime.now().hour
+        self.minute = dt.datetime.now().minute
+        self.seconds = dt.datetime.now().second
 
     def __str__(self):
         return '{}/{} {}: ${}/${} x {}'.format(self.doy, self.year,
@@ -32,10 +35,11 @@ class StockUpdateDescriptor(StockDescriptor):
 
     @staticmethod
     def get_headers() -> list:
-        return ['Day', 'Year', 'Name', 'Shares', 'Ask_Price', 'Bid_Price']
+        return ['Day', 'Year', 'Hour', 'Minute', 'Second', 'Name', 'Shares', 'Ask_Price', 'Bid_Price']
 
     def to_array(self) -> list:
-        return [self.doy, self.year, self.acronym, self.shares, self.ask_price, self.bid_price]
+        return [self.doy, self.year, self.hour, self.minute, self.seconds,
+                self.acronym, self.shares, self.ask_price, self.bid_price]
 
 
 class StockTransaction(StockUpdateDescriptor):
@@ -50,7 +54,8 @@ class StockTransaction(StockUpdateDescriptor):
 
     @staticmethod
     def get_headers() -> list:
-        return ['Day', 'Year', 'Buy_Sell', 'Name', 'Shares', 'Ask_Price', 'Bid_Price']
+        return ['Day', 'Year', 'Hour', 'Minute', 'Second', 'Buy_Sell', 'Name', 'Shares', 'Ask_Price', 'Bid_Price']
 
     def to_array(self) -> list:
-        return [self.doy, self.year, self.buy, self.acronym, self.shares, self.ask_price, self.bid_price]
+        return [self.doy, self.year, self.hour, self.minute, self.seconds,
+                self.buy, self.acronym, self.shares, self.ask_price, self.bid_price]

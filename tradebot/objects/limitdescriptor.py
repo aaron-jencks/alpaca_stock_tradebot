@@ -6,6 +6,9 @@ class LimitDescriptor:
         self.sell_price = sell
 
     def check_buy(self, sell_price: float, ask_price: float) -> bool:
+        print('comparing {} to {} with respect to the limit {}({},{})'.format(ask_price, sell_price,
+                                                                              self.limit_type,
+                                                                              self.buy_price, self.sell_price))
         if self.limit_type == '%':
             return ask_price <= sell_price * self.buy_price
         elif self.limit_type == '#':
@@ -16,6 +19,9 @@ class LimitDescriptor:
             print('Unrecognized limit type {}'.format(self.limit_type))
 
     def check_sell(self, buy_price: float, bid_price: float) -> bool:
+        print('comparing {} to {} with respect to the limit {}({},{})'.format(bid_price, buy_price,
+                                                                              self.limit_type,
+                                                                              self.buy_price, self.sell_price))
         if self.limit_type == '%':
             return bid_price >= buy_price * self.sell_price
         elif self.limit_type == '#':
