@@ -27,3 +27,15 @@ Whitespace of any kind, except line returns, obviously, is ignored.
 - `force-update`: Forces the [monitor](./tradebot/controllers/monitor.py) to update all prices for all stocks.
 - `export`: Causes the program to save its current state, the default location is `~/.robintrader`, but this can be changed in [settings.py](./settings.py)
 - `refresh`: Causes the program to ditch the current state and re-read everything in from the last saved state.
+
+#### Custom Commands
+
+You can send custom commands in the form of:
+
+```
+title msg payload
+```
+
+Where `payload` is any valid `json` (excluding newlines of course, and semicolons)
+
+Make sure you actually have a recipient in mind when sending the message, check the messaging documentation for a full reference.
