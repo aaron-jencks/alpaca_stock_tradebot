@@ -27,7 +27,7 @@ class DataController(QSM):
             # Writes the header row if the file is new
             if initialize:
                 row = ''
-                for h in StockTransaction.get_headers():
+                for h in t.__class__.get_headers():
                     row += h.replace('"', '""') + ','
                 rows.append(row[:-1] + '\n')
 
