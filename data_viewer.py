@@ -3,7 +3,7 @@ import pandas as pd
 import time
 
 
-fig = plt.Figure()
+fig = plt.figure()
 axs = []
 
 
@@ -15,8 +15,8 @@ def read_data(filename: str = './history.csv'):
     if len(acronyms) > len(axs):
         diff = len(acronyms) - len(axs)
         for i in range(diff):
-            ask = fig.add_subplot(len(axs) + 1, 2, len(axs) + 1)
-            bid = fig.add_subplot(len(axs) + 1, 2, len(axs) + 2)
+            ask = fig.add_subplot(len(acronyms), 2, 2 * len(axs) + 1)
+            bid = fig.add_subplot(len(acronyms), 2, 2 * len(axs) + 2)
             axs.append((ask, bid))
 
     return df
@@ -32,7 +32,6 @@ def plot_file(filename: str = './history.csv'):
 
     acronyms = list(set(df['Name']))
 
-    # fig, axs = plt.subplots(len(acronyms), 2, sharey='row')
     for i, row in enumerate(axs):
         acronym = acronyms[i]
         ask, bid = row
@@ -52,4 +51,4 @@ def plot_file(filename: str = './history.csv'):
 if __name__ == '__main__':
     while True:
         plot_file()
-        time.sleep(10)
+        time.sleep(60)
