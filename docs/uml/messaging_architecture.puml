@@ -53,4 +53,26 @@ class QSM {
 
 MessageHandler "1" .. "1" QSM : < Communicates\nvia
 
+class Application {
+    + modules: QSM[]
+    # event_loop()
+}
+
+Application "1" .. "1..*" QSM : > Manages
+
+object CLI
+object TradeController
+object DataMonitor
+object Timer
+object Vault
+object PYRHAdapter
+
+QSM <|-- CLI
+QSM <|-- TradeController
+QSM <|-- DataMonitor
+QSM <|-- Timer
+QSM <|-- Vault
+QSM <|-- PYRHAdapter
+QSM <|-- Application
+
 @enduml
