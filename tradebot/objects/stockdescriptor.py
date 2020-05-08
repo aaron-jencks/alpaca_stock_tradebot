@@ -1,61 +1,99 @@
 import datetime as dt
 
 
+def get_sql_tables() -> list:
+    return [Stock.create_sql_table(),
+            ManagedStock.create_sql_table(),
+            StockUpdate.create_sql_table(),
+            StockTransaction.create_sql_table()]
+
+
 class Stock:
-    def __init__(self, acronym: str = '', buy_price: float = 0, sell_price: float = 0):
+    def __init__(self, acronym: str = '',
+                 ask_price: float = 0, bid_price: float = 0,
+                 ask_size: int = 1, bid_size: int = 1):
         self.acronym = acronym
-        self.ask_price = sell_price
-        self.bid_price = buy_price
+        self.ask_price = ask_price
+        self.bid_price = bid_price
+        self.ask_size = ask_size
+        self.bid_size = bid_size
 
     def __str__(self):
-        return '{}: ${}/${}'.format(self.acronym, self.ask_price, self.bid_price)
-
-
-class StockDescriptor(Stock):
-    def __init__(self, acronym: str, buy_price: float = 0, sell_price: float = 0, shares: int = 1):
-        super().__init__(acronym, buy_price, sell_price)
-        self.shares = shares
-
-    def __str__(self):
-        return '{}: ${}/${} x {}'.format(self.acronym, self.ask_price, self.bid_price, self.shares)
-
-
-class StockUpdateDescriptor(StockDescriptor):
-    def __init__(self, acronym: str, buy_price: float = 0, sell_price: float = 0, shares: int = 1):
-        super().__init__(acronym, buy_price, sell_price, shares)
-        self.doy = dt.datetime.now().timetuple().tm_yday
-        self.year = dt.date.today().year
-        self.hour = dt.datetime.now().hour
-        self.minute = dt.datetime.now().minute
-        self.seconds = dt.datetime.now().second
-
-    def __str__(self):
-        return '{}/{} {}: ${}/${} x {}'.format(self.doy, self.year,
-                                               self.acronym, self.ask_price, self.bid_price, self.shares)
+        return '{}: (${} x{})/(${} x{})'.format(self.acronym,
+                                                self.ask_price, self.ask_size,
+                                                self.bid_price, self.bid_size)
 
     @staticmethod
-    def get_headers() -> list:
-        return ['Day', 'Year', 'Hour', 'Minute', 'Second', 'Name', 'Shares', 'Ask_Price', 'Bid_Price']
+    def create_sql_table() -> dict:
+        return {'name': 'Stocks', 'properties': {'acronym': 'TEXT PRIMARY KEY',
+                                                 'ask_price': 'FLOAT',
+                                                 'bid_price': 'FLOAT',
+                                                 'ask_size': 'INTEGER',
+                                                 'bid_size': 'INTEGER'}}
 
-    def to_array(self) -> list:
-        return [self.doy, self.year, self.hour, self.minute, self.seconds,
-                self.acronym, self.shares, self.ask_price, self.bid_price]
+
+class ManagedStock:
+    def __init__(self, table_id: int, acronym: str, shares: int, last_price: float = 0):
+        self.table_id = table_id
+        self.acronym = acronym
+        self.shares = shares
+        self.last_price = last_price
+
+    def __str__(self):
+        return '{}: ${} x {}'.format(self.acronym, self.last_price, self.shares)
+
+    @staticmethod
+    def create_sql_table() -> dict:
+        return {'name': 'ManagedStocks', 'properties': {'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+                                                        'stock_acronym': 'TEXT NOT NULL',
+                                                        'shares': 'INTEGER NOT NULL',
+                                                        'last_price': 'FLOAT',
+                                                        'FOREIGN KEY (stock_acronym)': 'REFERENCES Stocks (acronym)'}}
 
 
-class StockTransaction(StockUpdateDescriptor):
-    def __init__(self, acronym: str, buy: bool, buy_price: float = 0, sell_price: float = 0, shares: int = 1):
-        super().__init__(acronym, buy_price, sell_price, shares)
+class StockUpdate(Stock):
+    def __init__(self, table_id: int,
+                 acronym: str,
+                 ask_price: float = 0, ask_size: int = 1,
+                 bid_price: float = 0, bid_size: int = 1):
+        super().__init__(acronym, ask_price, bid_price, ask_size, bid_size)
+        self.table_id = table_id
+        self.date = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    def __str__(self):
+        return '{} '.format(self.date) + super().__str__()
+
+    @staticmethod
+    def create_sql_table() -> dict:
+        return {'name': 'StockUpdates', 'properties': {'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+                                                       'stock_acronym': 'TEXT NOT NULL',
+                                                       'ask_price': 'FLOAT',
+                                                       'bid_price': 'FLOAT',
+                                                       'ask_size': 'INTEGER',
+                                                       'bid_size': 'INTEGER',
+                                                       'date': 'DATETIME NOT NULL',
+                                                       'FOREIGN KEY (stock_acronym)': 'REFERENCES Stocks (acronym)'}}
+
+
+class StockTransaction:
+    def __init__(self, managed_stock_id: int, acronym: str, buy: bool, price: float = 0, shares: int = 1):
+        self.managed_stock_id = managed_stock_id
+        self.acronym = acronym
         self.buy = buy
+        self.price = price
+        self.shares = shares
+        self.date = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def __str__(self) -> str:
-        return '{}/{} {} {} x {} for ${}'.format(self.doy, self.year,
-                                                 'Buy' if self.buy else 'Sell', self.acronym, self.shares,
-                                                 self.ask_price if self.buy else self.bid_price)
+        return '{} {} ({} x {}) for ${}'.format(self.date,
+                                                'Buy' if self.buy else 'Sell', self.acronym, self.shares,
+                                                self.price)
 
     @staticmethod
-    def get_headers() -> list:
-        return ['Day', 'Year', 'Hour', 'Minute', 'Second', 'Buy_Sell', 'Name', 'Shares', 'Ask_Price', 'Bid_Price']
-
-    def to_array(self) -> list:
-        return [self.doy, self.year, self.hour, self.minute, self.seconds,
-                self.buy, self.acronym, self.shares, self.ask_price, self.bid_price]
+    def create_sql_table() -> dict:
+        return {'name': 'StockTransactions', 'properties': {'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+                                                            'managed_stock_id': 'TEXT NOT NULL',
+                                                            'buy_sell': 'BOOL NOT NULL',
+                                                            'price': 'FLOAT NOT NULL',
+                                                            'FOREIGN KEY (managed_stock_id)':
+                                                                'REFERENCES ManagedStocks (id)'}}
