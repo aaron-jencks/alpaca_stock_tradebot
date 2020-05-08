@@ -12,3 +12,10 @@ class BalanceUpdate:
             'balance': 'FLOAT NOT NULL',
             'date': 'DATETIME NOT NULL'
         }}
+
+    @staticmethod
+    def get_tuple_names() -> str:
+        return '(balance, date)'
+
+    def to_tuple_str(self) -> str:
+        return '({}, {})'.format(self.balance, self.date)

@@ -44,3 +44,10 @@ class LimitDescriptor:
             'lower': 'FLOAT',
             'FOREIGN KEY (managed_stock_id)': 'REFERENCES ManagedStocks (id)'
         }}
+
+    @staticmethod
+    def get_tuple_names() -> str:
+        return '(managed_stock_id, type, upper, lower)'
+
+    def to_tuple_str(self) -> str:
+        return '({}, {}, {}, {})'.format(self.managed_stock_id, self.limit_type, self.upper, self.lower)
