@@ -43,6 +43,20 @@ def setup_record_insertion(table: str, tuple_names: str, records: list) -> str:
     return result[:-1] + ';'
 
 
+def setup_record_update(table: str, properties: dict, selection_properties: dict) -> str:
+    result = 'UPDATE\n\t{}\n\tSET'.format(table)
+    for p in properties.keys():
+        result += '\n\t{} = {},'.format(p,
+                                        properties[p] if not isinstance(properties[p], str) else
+                                        '"' + properties[p] + '"')
+    result = result[:-1] + '\nWHERE'
+    for s in selection_properties:
+        result += '\n\t{} = {},'.format(s,
+                                        selection_properties[s] if not isinstance(selection_properties[s], str) else
+                                        '"' + selection_properties[s] + '"')
+    return result[:-1]
+
+
 def __setup_tables(conn: sqlite3.Connection):
     tables = sd.get_sql_tables()
     tables.append(ld.LimitDescriptor.create_sql_table())
