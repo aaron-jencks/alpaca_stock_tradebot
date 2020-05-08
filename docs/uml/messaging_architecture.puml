@@ -53,42 +53,4 @@ class QSM {
 
 MessageHandler "1" .. "1" QSM : < Communicates\nvia
 
-class ConsoleJunction {
-    + incoming: Connection
-    + requests: Connection
-    + req_lock: Lock
-    - __requests: Connection
-    # connections: dict<string, Connection>
-    # is_stopping: bool
-
-    + connect(client_id: string): Connection
-    + disconnect(client_id: string)
-    + join()
-}
-
-class ConsoleServer {
-    - junction: ConsoleJunction
-    - outgoing: Connection
-
-    - setup_junction()
-    + connect(client_id: string): Connection
-    + disconnect(client_id: string)
-    + send(msg: string)
-    + join()
-}
-
-ConsoleJunction "1" .. "1" ConsoleServer : < Interfaces with
-
-class ConsoleClient {
-    + incoming: Connection
-    # client_id: string
-
-    + readling(): string
-    + close()
-}
-
-ConsoleServer "1" .. "0..*" ConsoleClient : > Controls
-
-QSM "1" .. "1" ConsoleClient : > Contains
-
 @enduml
