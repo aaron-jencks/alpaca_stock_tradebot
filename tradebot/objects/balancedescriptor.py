@@ -10,5 +10,5 @@ class BalanceUpdate:
     def create_sql_table() -> dict:
         return {'name': 'BalanceLedger', 'properties': {
             'balance': 'FLOAT NOT NULL',
-            'date': 'DATE NOT NULL'
+            'date': 'DATETIME NOT NULL'
         }}

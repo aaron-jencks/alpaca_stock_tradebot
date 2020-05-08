@@ -31,9 +31,18 @@ class Stock:
                                                  'ask_size': 'INTEGER',
                                                  'bid_size': 'INTEGER'}}
 
+    @staticmethod
+    def get_tuple_names() -> str:
+        return '(acronym, ask_price, bid_price, ask_size, bid_size)'
+
+    def to_tuple_str(self) -> str:
+        return '({}, {}, {}, {}, {})'.format(self.acronym,
+                                             self.ask_price, self.bid_price,
+                                             self.ask_size, self.bid_size)
+
 
 class ManagedStock:
-    def __init__(self, table_id: int, acronym: str, shares: int, last_price: float = 0):
+    def __init__(self, table_id: int, acronym: str, shares: int = 1, last_price: float = 0):
         self.table_id = table_id
         self.acronym = acronym
         self.shares = shares
@@ -49,6 +58,13 @@ class ManagedStock:
                                                         'shares': 'INTEGER NOT NULL',
                                                         'last_price': 'FLOAT',
                                                         'FOREIGN KEY (stock_acronym)': 'REFERENCES Stocks (acronym)'}}
+
+    @staticmethod
+    def get_tuple_names() -> str:
+        return '(stock_acronym, shares, last_price)'
+
+    def to_tuple_str(self) -> str:
+        return '({}, {}, {})'.format(self.acronym, self.shares, self.last_price)
 
 
 class StockUpdate(Stock):
@@ -74,6 +90,16 @@ class StockUpdate(Stock):
                                                        'date': 'DATETIME NOT NULL',
                                                        'FOREIGN KEY (stock_acronym)': 'REFERENCES Stocks (acronym)'}}
 
+    @staticmethod
+    def get_tuple_names() -> str:
+        return '(stock_acronym, ask_price, bid_price, ask_size, bid_size, date)'
+
+    def to_tuple_str(self) -> str:
+        return '({}, {}, {}, {}, {}, {})'.format(self.acronym,
+                                                 self.ask_price, self.bid_price,
+                                                 self.ask_size, self.bid_size,
+                                                 self.date)
+
 
 class StockTransaction:
     def __init__(self, managed_stock_id: int, acronym: str, buy: bool, price: float = 0, shares: int = 1):
@@ -93,7 +119,16 @@ class StockTransaction:
     def create_sql_table() -> dict:
         return {'name': 'StockTransactions', 'properties': {'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
                                                             'managed_stock_id': 'TEXT NOT NULL',
+                                                            'acronym': 'TEXT',
                                                             'buy_sell': 'BOOL NOT NULL',
                                                             'price': 'FLOAT NOT NULL',
+                                                            'date': 'DATETIME NOT NULL',
                                                             'FOREIGN KEY (managed_stock_id)':
                                                                 'REFERENCES ManagedStocks (id)'}}
+
+    @staticmethod
+    def get_tuple_names() -> str:
+        return '(managed_stock_id, acronym, buy_sell, price, date)'
+
+    def to_tuple_str(self) -> str:
+        return '({}, {}, {}, {}, {})'.format(self.managed_stock_id, self.acronym, self.buy, self.price, self.date)
