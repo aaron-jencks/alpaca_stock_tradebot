@@ -1,0 +1,70 @@
+@startuml
+
+package "DataBase" {
+
+    object Stock {
+        + id: string unique
+        + acronym: string
+        + ask_price: float
+        + bid_price: float
+        + ask_size: int
+        + bid_size: int
+    }
+
+    object ManagedStock {
+        + id: string unique
+        + stock_acronym: string
+        + shares: int
+        + last_price: float
+    }
+
+    object MonitorUpdate {
+        + id: string unique
+        + stock_acronym: string
+        + ask_price: float
+        + bid_price: float
+        + ask_size: int
+        + bid_size: int
+        + date: string
+    }
+
+    object StockUpdate {
+        + id: string unique
+        + managed_stock_id: string
+        + last_price: float
+        + shares: int
+        + stock_acronym: string
+        + date: string
+    }
+
+    object StockTransaction {
+        + id: string unique
+        + managed_stock_id: string
+        + acronym: string
+        + buy/sell: bool
+        + price: float
+        + shares: int
+    }
+
+    object StockLimit {
+        + managed_stock_id: string
+        + type: string
+        + upper: float
+        + lower: float
+    }
+
+    object BalanceLedger {
+        + balance: float
+        + date: string
+    }
+
+    Stock "1" .. "1..*" ManagedStock : < Describes
+    Stock "1" .. "0..*" MonitorUpdate : < Describes,\nan instance\nin time of
+    ManagedStock "1" .. "0..*" StockTransaction : < Describes\na change to
+    ManagedStock "1..*" .. "1" StockLimit : < Describes when to buy/sell
+    ManagedStock "1" .. "0..*" StockUpdate : < Describes\na change to
+    StockTransaction "1..*" .. "1" BalanceLedger : < Describes changes in
+
+}
+
+@enduml
