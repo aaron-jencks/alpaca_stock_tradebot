@@ -1,28 +1,74 @@
 @startuml "Domain Model Diagram"
 
-object stock {
-    + acronym
-    + buy_price
-    + sell_price
+package "DataBase" {
+
+    object Stock {
+        + id: string unique
+        + acronym: string
+        + ask_price: float
+        + bid_price: float
+        + ask_size: int
+        + bid_size: int
+    }
+
+    object ManagedStock {
+        + id: string unique
+        + stock_acronym: string
+        + shares: int
+        + last_price: float
+    }
+
+    object StockUpdate {
+        + id: string unique
+        + stock_acronym: string
+        + ask_price: float
+        + bid_price: float
+        + ask_size: int
+        + bid_size: int
+        + date: string
+    }
+
+    object StockTransaction {
+        + id: string unique
+        + managed_stock_id: string
+        + acronym: string
+        + buy/sell: bool
+        + price: float
+        + shares: int
+    }
+
+    object StockLimit {
+        + managed_stock_id: string
+        + type: string
+        + upper: float
+        + lower: float
+    }
+
+    object BalanceLedger {
+        + balance: float
+        + date: string
+    }
+
+    Stock "1" .. "1..*" ManagedStock : < Describes
+    Stock "1" .. "0..*" StockUpdate : < Describes,\nan instance\nin time of
+    ManagedStock "1" .. "0..*" StockTransaction : < Describes\na change to
+    ManagedStock "1..*" .. "1" StockLimit : < Describes when to buy/sell
+    StockTransaction "1..*" .. "1" BalanceLedger : < Describes changes in
+
 }
 
-class StockDescriptor {
-    + shares
+class Vault {
+    - db: database
+    + getStockNames(): string[]
+    + updatePrices(acronym: string, ask: float, bid: float)
+    + getInfo(id: string): ManagedStock
+    + addStock(s: ManagedStock): string
+    + addMonitor(s: Stock): string
+    + removeStock(id: string)
+    + removeMonitor(id: string): bool
 }
 
-class StockUpdateDescriptor {
-    + day_of_year : int
-    + year : int
-}
-
-StockDescriptor "1" .. "1" StockUpdateDescriptor : < describes an instance\n in time of
-
-class LimitDescriptor {
-    + sell_price
-    + buy_price
-}
-
-stock "1" .. "1" StockDescriptor : < describes
+Vault "1" .. "1" DataBase : Manages
 
 class TradeController {
     + stocks : StockDescriptor[]
@@ -30,7 +76,9 @@ class TradeController {
     + sell(s: StockDescriptor)
 }
 
-StockDescriptor "1..*" .. "1" TradeController : < Manages
+ManagedStock "1..*" .. "1" TradeController : < Manages
+StockTransaction "0..*" .. "1" TradeController : < Generates
+BalanceLedger "0..*" .. "1" TradeController : < Updates
 
 class PyrhAdapter {
     - rbn: Robinhood
@@ -43,15 +91,15 @@ class PyrhAdapter {
 TradeController "1" .. "1" PyrhAdapter : > Triggers
 
 class DataMonitor {
-    + limits : dict<string, LimitDescriptor>
-    + stocks : StockDescriptor[]
-    + append(stock : StockDescriptor)
+    + limits : dict<string, StockLimit>
+    + stocks : Stock[]
+    + append(stock : Stock)
     + update_prices()
 }
 
 TradeController "1" .. "1" DataMonitor : < Triggers
-StockDescriptor "0..*" .. "1" DataMonitor : < Monitors
-LimitDescriptor "0..*" .. "1" DataMonitor : < Uses
+Stock "0..*" .. "1" DataMonitor : < Updates
+StockLimit "0..*" .. "1" DataMonitor : < Uses
 PyrhAdapter "1" .. "1" DataMonitor : < Interfaces with
 
 class Timer {
@@ -65,26 +113,5 @@ class MarketTimer {
 MarketTimer --|> Timer
 
 MarketTimer "1" .. "1" DataMonitor : > Triggers
-
-class StockTransaction {
-    + buy : bool
-}
-
-StockUpdateDescriptor <|-- StockTransaction
-
-StockDescriptor "1" .. "0..*" StockTransaction : < Describes a\ntransaction of
-
-StockTransaction "0..*" .. "1" TradeController : < Generates
-
-class DataController {
-    + tfilename: string
-    + pfilename: string
-    - export_transaction_data(t: StockTransaction)
-    - export_price_data(t: StockUpdateDescriptor)
-}
-
-DataController "1" .. "1" TradeController : < Triggers
-DataController "1" .. "0..*" StockTransaction : > Documents
-DataController "1" .. "0..*" StockUpdateDescriptor : > Documents
 
 @enduml
