@@ -1,5 +1,56 @@
 @startuml "Domain Model Diagram"
 
+package Messaging {
+    class Message {
+        + title: string
+        + msg: string
+        + payload: object
+    }
+
+    class MessageHandler {
+        + subscriptions: list
+        - outgoing: Queue
+        - handler_id: string
+        + send(msg: Message)
+        + receive(): Message
+    }
+
+    class MessageMailman {
+        - clients: list
+        - incoming: Queue
+        - requests: Queue
+        + send(msg: Message)
+        + receive(handler_id: string): Message
+        + connect(handler_id: string, subscriptions: list)
+        + disconnect(handler_id: string)
+    }
+
+    MessageMailman "1" .. "1..*" MessageHandler : < Interfaces\nwith
+    Message "0..*" .. "1" MessageHandler : < Sends\nand\nreceives
+    Message "0..*" .. "1" MessageMailman : < Distributes
+}
+
+package StateMachines {
+    class QSM {
+        # handler: MessageHandler
+        # setup_states()
+        # setup_mappings()
+        # idle_state()
+        # initial_state()
+        # exit_state()
+        # final_state()
+    }
+
+    MessageHandler "1" .. "1" QSM : < Contains
+
+    class Application {
+        # modules: QSM[]
+        More coming soon...
+    }
+
+    Application "1" .. "1..*" QSM : > Manages
+}
+
 package "DataBase" {
 
     object Stock {
@@ -18,13 +69,22 @@ package "DataBase" {
         + last_price: float
     }
 
-    object StockUpdate {
+    object MonitorUpdate {
         + id: string unique
         + stock_acronym: string
         + ask_price: float
         + bid_price: float
         + ask_size: int
         + bid_size: int
+        + date: string
+    }
+
+    object StockUpdate {
+        + id: string unique
+        + managed_stock_id: string
+        + last_price: float
+        + shares: int
+        + stock_acronym: string
         + date: string
     }
 
@@ -50,9 +110,10 @@ package "DataBase" {
     }
 
     Stock "1" .. "1..*" ManagedStock : < Describes
-    Stock "1" .. "0..*" StockUpdate : < Describes,\nan instance\nin time of
+    Stock "1" .. "0..*" MonitorUpdate : < Describes,\nan instance\nin time of
     ManagedStock "1" .. "0..*" StockTransaction : < Describes\na change to
     ManagedStock "1..*" .. "1" StockLimit : < Describes when to buy/sell
+    ManagedStock "1" .. "0..*" StockUpdate : < Describes\na change to
     StockTransaction "1..*" .. "1" BalanceLedger : < Describes changes in
 
 }
@@ -68,50 +129,90 @@ class Vault {
     + removeMonitor(id: string): bool
 }
 
-Vault "1" .. "1" DataBase : Manages
+Vault "1" .. "1" DataBase : > Manages
+Vault --|> QSM
 
-class TradeController {
-    + stocks : StockDescriptor[]
-    + buy(s: StockDescriptor)
-    + sell(s: StockDescriptor)
+package Adapters {
+    class PyrhAdapter {
+        - rbn: Robinhood
+        - login()
+        + place_buy()
+        + place_sell()
+        + get_quote()
+    }
+
+    object TimerRelay {
+        + target: Message
+    }
+
+    object SQLAdapter {
+        + setup_db(): Connection
+        + setup_table(name: string, properties: dict)
+        + setup_insertion(table: string, record: string)
+        + execute_query(conn: Connection, q: string)
+        + execute_read_query(conn: Connection, q: string)
+    }
+
+    Vault "1" .. "1" SQLAdapter : > Interfaces\nwith
 }
 
-ManagedStock "1..*" .. "1" TradeController : < Manages
-StockTransaction "0..*" .. "1" TradeController : < Generates
-BalanceLedger "0..*" .. "1" TradeController : < Updates
-
-class PyrhAdapter {
-    - rbn: Robinhood
-    - login()
-    + place_buy()
-    + place_sell()
-    + get_quote()
-}
-
-TradeController "1" .. "1" PyrhAdapter : > Triggers
-
-class DataMonitor {
-    + limits : dict<string, StockLimit>
-    + stocks : Stock[]
-    + append(stock : Stock)
-    + update_prices()
-}
-
-TradeController "1" .. "1" DataMonitor : < Triggers
-Stock "0..*" .. "1" DataMonitor : < Updates
-StockLimit "0..*" .. "1" DataMonitor : < Uses
-PyrhAdapter "1" .. "1" DataMonitor : < Interfaces with
+Adapters --|> QSM
 
 class Timer {
     + interval : int
 }
+
+Timer --|> QSM
 
 class MarketTimer {
     Automatically pauses\noutside of market hours
 }
 
 MarketTimer --|> Timer
+MarketTimer "1" .. "1..*" TimerRelay : > Triggers
 
-MarketTimer "1" .. "1" DataMonitor : > Triggers
+package Controllers {
+
+    class TradeController {
+        + stocks : StockDescriptor[]
+        + buy(s: StockDescriptor)
+        + sell(s: StockDescriptor)
+    }
+
+    ManagedStock "1..*" .. "1" TradeController : < Manages
+    StockTransaction "0..*" .. "1" TradeController : < Generates
+    BalanceLedger "0..*" .. "1" TradeController : < Updates
+    Vault "1" .. "1" TradeController : < Interfaces\nwith
+
+    class DataMonitor {
+        + limits : dict<string, StockLimit>
+        + stocks : Stock[]
+        + append(stock : Stock)
+        + update_prices()
+    }
+
+    TradeController "1" .. "1" DataMonitor : < Triggers
+    Stock "0..*" .. "1" DataMonitor : < Updates
+    StockLimit "0..*" .. "1" DataMonitor : < Uses
+    Vault "1" .. "1" DataMonitor : < Interfaces\nwith
+    MonitorUpdate "0..*" .. "1" DataMonitor : < Generates
+    TimerRelay "1..*" .. "1" DataMonitor : > Triggers
+
+    object CLI {
+        See cli.md
+    }
+
+    Vault "1" .. "1" CLI : < Manages
+    TradeController "1" .. "1" CLI : < Manages
+    DataMonitor "1" .. "1" CLI : < Manages
+
+}
+
+Controllers "1" .. "1" Adapters : Interfaces\nwith
+Controllers --|> QSM
+
+object DataViewer
+
+DataViewer "1..*" .. "1..*" Stock : > Graphs
 
 @enduml
