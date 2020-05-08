@@ -18,12 +18,29 @@ def execute_query(connection: sqlite3.Connection, query: str):
         print(f"The error '{e}' occurred")
 
 
+def execute_read_query(connection: sqlite3.Connection, query: str) -> list:
+    cursor = connection.cursor()
+    try:
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return result
+    except sqlite3.Error as e:
+        print(f"The error '{e}' occurred")
+
+
 def setup_table(name: str, columns: dict) -> str:
     """Creates a SQL Query for creating a table given the name and the column names/types"""
     result = "CREATE TABLE IF NOT EXISTS {} (".format(name)
     for k in columns.keys():
         result += k + " " + columns[k] + ", "
     return result[:-2] + ");"
+
+
+def setup_record_insertion(table: str, tuple_names: str, records: list) -> str:
+    result = "INSERT INTO\n\t{} {}\nVALUES\n".format(table, tuple_names)
+    for r in records:
+        result += "\t{},\n".format(r)
+    return result[:-1] + ';'
 
 
 def __setup_tables(conn: sqlite3.Connection):
