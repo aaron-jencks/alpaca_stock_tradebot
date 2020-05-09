@@ -6,6 +6,12 @@ class LimitDescriptor:
         self.upper = upper
         self.lower = lower
 
+    def __eq__(self, other):
+        if isinstance(other, LimitDescriptor.__class__):
+            return other.limit_type == self.limit_type and \
+                   other.upper == self.upper and \
+                   other.lower == self.lower
+
     def check_buy(self, sell_price: float, ask_price: float) -> bool:
         print('comparing {} to {} with respect to the limit {}({},{})'.format(ask_price, sell_price,
                                                                               self.limit_type,

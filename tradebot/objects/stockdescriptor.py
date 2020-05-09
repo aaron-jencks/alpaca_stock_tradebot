@@ -51,6 +51,12 @@ class ManagedStock:
     def __str__(self):
         return '{}: ${} x {}'.format(self.acronym, self.last_price, self.shares)
 
+    def __eq__(self, other):
+        if isinstance(other, ManagedStock.__class__):
+            return other.acronym == self.acronym and \
+                   other.shares == self.shares and \
+                   other.last_price == self.last_price
+
     @staticmethod
     def create_sql_table() -> dict:
         return {'name': 'ManagedStocks', 'properties': {'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
