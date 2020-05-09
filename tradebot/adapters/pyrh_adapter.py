@@ -7,7 +7,7 @@ import time
 from tradebot.messaging.qsm import QSM
 from tradebot.messaging.message import Message
 from tradebot.objects.stockdescriptor import StockDescriptor
-from login import username, password, verification_method
+# from login import username, password, verification_method
 
 
 class PyrhAdapter(QSM):
@@ -60,8 +60,8 @@ class PyrhAdapter(QSM):
 
     def login(self):
         while True:
-            user = username  # input('Username(email): ')
-            pwd = password  # input('Password: ')
+            user = input('Username(email): ')
+            pwd = input('Password: ')
             if self.rbn.login(user, pwd):
                 print('Logged in successfully')
                 self.logged_in = True

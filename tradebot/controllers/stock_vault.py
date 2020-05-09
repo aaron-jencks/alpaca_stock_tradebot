@@ -14,7 +14,7 @@ class StockVault(QSM):
     instance = None
 
     def __init__(self, name: str = 'vault'):
-        super().__init__(name, ['vault_config', 'vault_request'])
+        super().__init__(name, ['vault_request'])
         self.requestq = Queue()
         self.req_lock = Lock()
         self.req_out = Queue()
@@ -56,6 +56,9 @@ class StockVault(QSM):
             pass
 
         super().idle_state()
+
+    def vault_request_msg(self, msg: Message):
+        self.requestq.put(msg)
 
     # region add
 

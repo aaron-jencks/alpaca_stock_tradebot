@@ -35,6 +35,8 @@ class Timer(QSM):
         super().idle_state()
         if not self.paused and time.time() - self.start_time >= self.interval:
             self.append_state('trigger')
+        elif self.paused:
+            time.sleep(60)
 
     def trigger_state(self):
         self.handler.send(Message('timer', self.name))
@@ -49,8 +51,9 @@ class MarketTimer(Timer):
         dow = dt.datetime.now().isoweekday()
         hour = dt.datetime.now().hour
         minute = dt.datetime.now().minute
+        # print('The date is {} @ {}:{}'.format(dow, hour, minute))
         if not self.paused and ((dow == 6 or dow == 7) or
-                                ((16 < hour < 9) or (hour == 9 and minute < 30))):
+                                ((hour >= 16 or hour < 9) or (hour == 9 and minute < 30))):
             print('Pausing Timer')
             self.paused = True
         elif self.paused and ((dow != 6 and dow != 7) and ((9 < hour < 16) or (hour == 9 and minute >= 30))):
