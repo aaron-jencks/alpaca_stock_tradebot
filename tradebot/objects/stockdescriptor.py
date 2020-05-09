@@ -42,7 +42,7 @@ class Stock:
 
 
 class ManagedStock:
-    def __init__(self, table_id: int, acronym: str, shares: int = 1, last_price: float = 0):
+    def __init__(self, acronym: str, table_id: int = -1, shares: int = 1, last_price: float = 0):
         self.table_id = table_id
         self.acronym = acronym
         self.shares = shares
