@@ -1,0 +1,28 @@
+@startuml
+
+object QSM
+object DataMonitor {
+    see controllers section\nabove
+}
+
+object TimerRelay {
+    + target: Message
+}
+
+QSM <|-- TimerRelay
+TimerRelay "1..*" .. "1" DataMonitor : > Triggers
+
+class Timer {
+    + interval : int
+}
+
+Timer --|> QSM
+
+class MarketTimer {
+    Automatically pauses\noutside of market hours
+}
+
+MarketTimer --|> Timer
+MarketTimer "1" .. "1..*" TimerRelay : > Triggers
+
+@enduml

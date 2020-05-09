@@ -1,0 +1,55 @@
+@startuml
+
+object DataBase
+object QSM {
+    see messages page
+}
+
+class Vault {
+    - db: database
+    + getStockNames(): string[]
+    + updatePrices(acronym: string, ask: float, bid: float)
+    + getInfo(id: string): ManagedStock
+    + addStock(s: ManagedStock): string
+    + addMonitor(s: Stock): string
+    + removeStock(id: string)
+    + removeMonitor(id: string): bool
+}
+
+Vault "1" .. "1" DataBase : > Manages
+Vault --|> QSM
+
+package Controllers {
+
+    class TradeController {
+        + stocks : StockDescriptor[]
+        + buy(s: StockDescriptor)
+        + sell(s: StockDescriptor)
+    }
+
+    Vault "1" .. "1" TradeController : < Interfaces\nwith
+    QSM <|-- TradeController
+
+    class DataMonitor {
+        + limits : dict<string, StockLimit>
+        + stocks : Stock[]
+        + append(stock : Stock)
+        + update_prices()
+    }
+
+    TradeController "1" .. "1" DataMonitor : < Triggers
+    Vault "1" .. "1" DataMonitor : < Interfaces\nwith
+    QSM <|-- DataMonitor
+
+    object CLI {
+        See cli page
+    }
+
+    Vault "1" .. "1" CLI : < Manages
+    TradeController "1" .. "1" CLI : < Manages
+    DataMonitor "1" .. "1" CLI : < Manages
+    QSM <|-- CLI
+
+}
+
+@enduml
