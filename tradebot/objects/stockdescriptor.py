@@ -52,10 +52,12 @@ class ManagedStock:
         return '{}: ${} x {}'.format(self.acronym, self.last_price, self.shares)
 
     def __eq__(self, other):
-        if isinstance(other, ManagedStock.__class__):
+        if isinstance(other, ManagedStock):
             return other.acronym == self.acronym and \
                    other.shares == self.shares and \
                    other.last_price == self.last_price
+        else:
+            return False
 
     @staticmethod
     def create_sql_table() -> dict:
