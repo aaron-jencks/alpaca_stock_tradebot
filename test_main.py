@@ -2,12 +2,14 @@ import unittest
 
 import tradebot.tests.cli as cli
 import tradebot.tests.messaging_test as msg
+import tradebot.tests.qsm as qsm
 
 
 def suite():
     st = unittest.TestSuite()
     st.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(cli.CLITest))
     st.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(msg.MessagingTestCase))
+    st.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(qsm.QSMTestCase))
     return st
 
 

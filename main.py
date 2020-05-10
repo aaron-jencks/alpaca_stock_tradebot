@@ -27,14 +27,14 @@ if __name__ == '__main__':
 
     dm = monitor.StockMonitor('monitor', [t[0] for t in stocks], limit_dict, p)
     dc = datacontroller.DataController('data_controller')
-    tc = tradecontroller.TradeController('trade_controller', 0)
+    # tc = tradecontroller.TradeController('trade_controller', 0)
 
     print('Starting modules')
     relay.start()
     p.start()
     dm.start()
     dc.start()
-    tc.start()
+    # tc.start()
     t.start()
 
     print('Type HELP for a list of usable commands, otherwise, please see the wiki.')
@@ -43,7 +43,7 @@ if __name__ == '__main__':
         if st == 'exit':
             t.join()
             dc.join()
-            tc.join()
+            # tc.join()
             p.join()
             relay.join()
         else:

@@ -1,7 +1,7 @@
 import os.path as path
 import os
 
-from tradebot.objects.stockdescriptor import StockDescriptor
+from tradebot.objects.stockdescriptor import ManagedStock
 from tradebot.objects.limitdescriptor import LimitDescriptor
 import settings
 
@@ -37,14 +37,14 @@ def parse_stock_descriptor(stock_descriptor: str) -> tuple:
     spaces = stock_descriptor.strip().count(' ')
     info = stock_descriptor.strip().split(' ')
     if spaces == 4:
-        d = StockDescriptor(info[0], float(info[4]), float(info[3]), int(info[1]))
-        l = LimitDescriptor(info[2], float(info[4]), float(info[3]))
+        d = ManagedStock(info[0], shares=int(info[1]))
+        l = LimitDescriptor(d.table_id, info[2], float(info[3]), float(info[4]))
     elif spaces == 3:
-        d = StockDescriptor(info[0], float(info[3]), float(info[2]), int(info[1]))
-        l = LimitDescriptor('%', float(info[3]), float(info[2]))
+        d = ManagedStock(info[0], shares=int(info[1]))
+        l = LimitDescriptor(d.table_id, '%', float(info[3]), float(info[2]))
     elif spaces == 1:
-        d = StockDescriptor(info[0], 0.95, 1.05, int(info[1]))
-        l = LimitDescriptor('%', 0.95, 1.05)
+        d = ManagedStock(info[0], 0.95, 1.05, int(info[1]))
+        l = LimitDescriptor(d.table_id, '%', 0.95, 1.05)
     else:
         print('Incorrect stocks.txt format')
         exit(1)
