@@ -1,7 +1,8 @@
-import unittest
+import unittest, time
 
 from tradebot.messaging.message import MessageHandler
 from tradebot.controllers.cli import parse_command
+import tradebot.controllers.cli as cli
 from tradebot.objects.stockdescriptor import ManagedStock
 from tradebot.objects.limitdescriptor import LimitDescriptor
 
@@ -12,6 +13,7 @@ class CLITest(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.handler.join()
+        cli.cli_handler = None
 
     def test_add(self):
         parse_command('add AAPL shares=10; add AAPL 1 3.0; add AAPL shares=10 buy_price=4.50')
@@ -19,13 +21,13 @@ class CLITest(unittest.TestCase):
 
         self.assertEqual(msg.title, 'vault_request', 'Add command should produce vault_request message')
         self.assertEqual(msg.msg, 'add_stock', 'Add command should produce an add_stock message')
-        self.assertEqual(msg.payload, ManagedStock('AAPL', shares=10))
+        self.assertTrue(msg.payload == ManagedStock('AAPL', shares=10))
 
         msg = self.handler.receive()
-        self.assertEqual(msg.payload, ManagedStock('AAPL', shares=1, last_price=3))
+        self.assertTrue(msg.payload == ManagedStock('AAPL', shares=1, last_price=3))
 
         msg = self.handler.receive()
-        self.assertEqual(msg.payload, ManagedStock('AAPL', shares=10, last_price=4.5))
+        self.assertTrue(msg.payload == ManagedStock('AAPL', shares=10, last_price=4.5))
 
     def test_remove(self):
         parse_command('remove 123; remove 123 10')
@@ -34,10 +36,10 @@ class CLITest(unittest.TestCase):
         self.assertEqual(msg.title, 'vault_request', 'Remove command should produce vault_request message')
         self.assertEqual(msg.msg, 'remove_stock', 'Remove command should produce a remove_stock message')
 
-        self.assertEqual(msg.payload, ManagedStock('None', table_id=123, shares=-1))
+        self.assertTrue(msg.payload == ManagedStock('None', table_id=123, shares=-1))
 
         msg = self.handler.receive()
-        self.assertEqual(msg.payload, ManagedStock('None', table_id=123, shares=10))
+        self.assertTrue(msg.payload == ManagedStock('None', table_id=123, shares=10))
 
     def test_list(self):
         parse_command('list; list AAPL')
@@ -53,13 +55,13 @@ class CLITest(unittest.TestCase):
         self.assertEqual(msg.title, 'monitor_config', 'List command should produce monitor_config message')
         self.assertEqual(msg.msg, 'limit', 'List command should produce a limit message')
 
-        self.assertEqual(msg.payload, LimitDescriptor(123))
+        self.assertTrue(msg.payload == LimitDescriptor(123))
 
         msg = self.handler.receive()
-        self.assertEqual(msg.payload, LimitDescriptor(123))
+        self.assertTrue(msg.payload == LimitDescriptor(123))
 
         msg = self.handler.receive()
-        self.assertEqual(msg.payload, LimitDescriptor(123, upper=0.95, lower=0.85))
+        self.assertTrue(msg.payload == LimitDescriptor(123, upper=0.95, lower=0.85))
 
     def test_buy(self):
         parse_command('buy AAPL; buy AAPL 10; buy AAPL 10 3.75')
@@ -68,13 +70,13 @@ class CLITest(unittest.TestCase):
         self.assertEqual(msg.title, 'trade_request', 'Buy command should produce a trade_request message')
         self.assertEqual(msg.msg, 'buy', 'Buy command should produce a buy message')
 
-        self.assertEqual(msg.payload, ManagedStock('AAPL', last_price=-1))
+        self.assertTrue(msg.payload == ManagedStock('AAPL', last_price=-1))
 
         msg = self.handler.receive()
-        self.assertEqual(msg.payload, ManagedStock('AAPL', shares=10, last_price=-1))
+        self.assertTrue(msg.payload == ManagedStock('AAPL', shares=10, last_price=-1))
 
         msg = self.handler.receive()
-        self.assertEqual(msg.payload, ManagedStock('AAPL', shares=10, last_price=3.75))
+        self.assertTrue(msg.payload == ManagedStock('AAPL', shares=10, last_price=3.75))
 
     def test_sell(self):
         parse_command('sell 123; sell 123 10')

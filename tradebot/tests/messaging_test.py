@@ -18,6 +18,7 @@ class MessagingTestCase(unittest.TestCase):
 
         handler2.receive()
         self.assertTrue(True, 'Handler can receive others\' messages')
+        handler1.join()
 
     def test_global(self):
         handler1 = msg.MessageHandler('handler1')
@@ -27,6 +28,7 @@ class MessagingTestCase(unittest.TestCase):
 
         handler2.receive()
         self.assertTrue(True, 'Handler can receive global messages')
+        handler1.join()
 
     def test_addressed(self):
         handler1 = msg.MessageHandler('handler1')
@@ -36,6 +38,7 @@ class MessagingTestCase(unittest.TestCase):
 
         handler2.receive()
         self.assertTrue(True, 'Handler can receive addressed messages')
+        handler1.join()
 
 
 if __name__ == '__main__':
