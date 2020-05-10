@@ -3,10 +3,11 @@ from tradebot.adapters.timer_relay import TimerRelay
 from tradebot.adapters.pyrh_adapter import PyrhAdapter
 from tradebot.file_io import *
 from tradebot.messaging.message import Message, MessageHandler
-from tradebot.messaging.socket_console_interaction import ConsoleServer
+from tradebot.controllers.cli import parse_command
 
 
 if __name__ == '__main__':
+    print('Welcome to iggy\'s Robinhood Trading bot')
     print('Reading in stock info')
     stocks = read_stocks('./stocks.txt')
 
@@ -36,7 +37,14 @@ if __name__ == '__main__':
     tc.start()
     t.start()
 
-    print('Waiting for timer to finish')
-    # t.join()
+    print('Type HELP for a list of usable commands, otherwise, please see the wiki.')
     while True:
-        ConsoleServer.send(input())
+        st = input('Enter a command $ ')
+        if st == 'exit':
+            t.join()
+            dc.join()
+            tc.join()
+            p.join()
+            relay.join()
+        else:
+            parse_command(st)

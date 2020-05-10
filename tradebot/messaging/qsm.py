@@ -3,6 +3,7 @@ from queue import Full, Empty
 import multiprocessing.connection
 from io import TextIOBase
 import sys
+from typing import Optional
 
 from tradebot.messaging.message import MessageHandler
 from tradebot.messaging.socket_console_interaction import ConsoleClient
@@ -18,11 +19,15 @@ class QSM(Process):
         self.setup_states()
 
         self.msg_list = msg_list
-        self.setup_msg_mappings(msg_list)
+        self.setup_msg_mappings(msg_list if msg_list is not None else [])
 
         self.handler = None  # MessageHandler(name, self.msg_map)
         self.states = Queue()
         self.append_state('init')
+
+    def join(self, timeout: Optional[float] = -1) -> None:
+        self.append_state('exit')
+        super().join(timeout=timeout)
 
     def run(self) -> None:
         # sys.stdin = self.cclient
