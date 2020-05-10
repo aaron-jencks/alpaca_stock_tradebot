@@ -21,7 +21,7 @@ class CLITest(unittest.TestCase):
 
         self.assertEqual(msg.title, 'vault_request', 'Add command should produce vault_request message')
         self.assertEqual(msg.msg, 'add_stock', 'Add command should produce an add_stock message')
-        self.assertTrue(msg.payload == ManagedStock('AAPL', shares=10))
+        self.assertTrue(msg.payload == ManagedStock('AAPL', shares=10, last_price=-1))
 
         msg = self.handler.receive()
         self.assertTrue(msg.payload == ManagedStock('AAPL', shares=1, last_price=3))

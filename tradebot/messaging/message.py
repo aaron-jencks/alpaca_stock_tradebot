@@ -1,4 +1,4 @@
-import json
+import json, time
 from multiprocessing import Process, Queue, Lock
 from queue import Empty, Full
 
@@ -66,6 +66,7 @@ class MessageMailman(Process):
         self.receive_lock = Lock()
         self.update_q = Queue()
         self.slots = {}
+        self.is_exitting = False
 
     def __del__(self):
         self.update_q.close()
@@ -73,55 +74,61 @@ class MessageMailman(Process):
         self.tx.close()
 
     def run(self) -> None:
-        while True:
-            try:
-                msg = self.rx.get_nowait()
-                # print('Mailman received {}'.format(msg))
-                if isinstance(msg, AddressedMessage.__class__):
-                    if msg.target in self.slots.keys():
-                        try:
-                            self.slots[msg.target]['queue'].put_nowait(msg)
-                        except Full as _:
-                            print('{} is full, skipping'.format(msg.target))
-                else:
-                    for s in self.slots.keys():
-                        # print('Checking {}\'s subscriptions list'.format(s))
-                        if msg.title == 'all' or msg.title in self.slots[s]['subscriptions']:
+        self.slots = {}
+        while not self.is_exitting:
+            while True:
+                try:
+                    msg = self.rx.get_nowait()
+                    # print('Mailman received {}'.format(msg))
+                    if isinstance(msg, AddressedMessage):
+                        if msg.target in list(self.slots.keys()):
+                            # print('Found target in slots')
                             try:
-                                self.slots[s]['queue'].put_nowait(msg)
-                                # print('Placed msg into {}\'s mailbox'.format(s))
+                                self.slots[msg.target]['queue'].put_nowait(msg)
                             except Full as _:
-                                print('{} is full, skipping'.format(s))
-            except Empty as _:
-                pass
-
-            try:
-                update = self.update_q.get_nowait()
-                if update.title == 'connect':
-                    self.slots[update.msg] = {'subscriptions': update.payload, 'queue': Queue()}
-                elif update.title == 'diconnect':
-                    self.slots[update.msg]['queue'].close()
-                    self.slots[update.msg] = {'subscriptions': [], 'queue': None}
-                elif update.title == 'subscribe':
-                    if update.msg not in self.slots.keys():
-                        self.slots[update.msg] = {'subscriptions': [update.payload], 'queue': Queue()}
+                                print('{} is full, skipping'.format(msg.target))
                     else:
-                        self.slots[update.msg]['subscriptions'].append(update.payload)
-                elif update.title == 'unsubscribe':
-                    if update.msg in self.slots.keys():
-                        if update.payload in self.slots[update.msg]['subscriptions']:
-                            self.slots[update.msg]['subscriptions'].remove(update.payload)
-                elif update.title == 'receive':
-                    if update.msg in self.slots.keys():
-                        try:
-                            self.tx.put(self.slots[update.msg]['queue'].get_nowait())
-                        except Empty as _:
-                            self.tx.put(None)
-                elif update.title == 'exit':
-                    print('Mailman exiting')
+                        for s in self.slots.keys():
+                            # print('Checking {}\'s subscriptions list'.format(s))
+                            if msg.title == 'all' or msg.title in self.slots[s]['subscriptions']:
+                                try:
+                                    self.slots[s]['queue'].put_nowait(msg)
+                                    # print('Placed msg into {}\'s mailbox'.format(s))
+                                except Full as _:
+                                    print('{} is full, skipping'.format(s))
+                except Empty as _:
                     break
-            except Empty as _:
-                pass
+
+            while True:
+                try:
+                    update = self.update_q.get_nowait()
+                    if update.title == 'connect':
+                        # print('Connecting {}'.format(update.msg))
+                        self.slots[update.msg] = {'subscriptions': update.payload, 'queue': Queue()}
+                    elif update.title == 'diconnect':
+                        self.slots[update.msg]['queue'].close()
+                        self.slots[update.msg] = {'subscriptions': [], 'queue': None}
+                    elif update.title == 'subscribe':
+                        if update.msg not in self.slots.keys():
+                            self.slots[update.msg] = {'subscriptions': [update.payload], 'queue': Queue()}
+                        else:
+                            self.slots[update.msg]['subscriptions'].append(update.payload)
+                    elif update.title == 'unsubscribe':
+                        if update.msg in self.slots.keys():
+                            if update.payload in self.slots[update.msg]['subscriptions']:
+                                self.slots[update.msg]['subscriptions'].remove(update.payload)
+                    elif update.title == 'receive':
+                        if update.msg in self.slots.keys():
+                            try:
+                                self.tx.put(self.slots[update.msg]['queue'].get_nowait())
+                            except Empty as _:
+                                self.tx.put(None)
+                    elif update.title == 'exit':
+                        print('Mailman exiting')
+                        self.is_exitting = True
+                        break
+                except Empty as _:
+                    break
 
     def connect(self, handler_id: str, subscription_list: list):
         self.update_q.put(Message('connect', handler_id, subscription_list))
@@ -162,6 +169,7 @@ class MessageHandler:
             MessageHandler.mailman.start()
 
         MessageHandler.mailman.connect(self.handler_id, self.subs)
+        time.sleep(0.1) # To ensure that the connection gets handled before any messages are sent.
 
     def __del__(self):
         if MessageHandler.mailman is not None:
