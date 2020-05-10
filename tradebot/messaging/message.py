@@ -31,6 +31,31 @@ class Message:
         return Message(t, msg, json.loads(payld))
 
 
+class AddressedMessage(Message):
+    def __init__(self, target_id: str, title: str, msg: str = '', payload: object = None):
+        super().__init__(title, msg, payload)
+        self.target = target_id
+
+    def __str__(self) -> str:
+        return "To: {}".format(self.target) + ", " + self.title + " " + self.msg + " " + str(self.payload)
+
+    @staticmethod
+    def from_str(data: str) -> object:
+        recipient_end = data.find(' ')
+        r = data[:recipient_end]
+        data = data[recipient_end + 1:]
+
+        title_end = data.find(' ')
+        t = data[:title_end]
+        data = data[title_end + 1:]
+
+        msg_end = data.find(' ')
+        msg = data[:msg_end]
+        payld = data[msg_end + 1:]
+
+        return AddressedMessage(r, t, msg, json.loads(payld))
+
+
 class MessageMailman(Process):
     def __init__(self, incoming: Queue = None):
         super().__init__()
@@ -49,7 +74,7 @@ class MessageMailman(Process):
         while True:
             try:
                 msg = self.rx.get_nowait()
-                # print('Mailman received {}'.format(msg))
+                print('Mailman received {}'.format(msg))
                 for s in self.slots.keys():
                     # print('Checking {}\'s subscriptions list'.format(s))
                     if msg.title in self.slots[s]['subscriptions']:
@@ -139,7 +164,8 @@ class MessageHandler:
     def join(self):
         self.send(Message('exit'))
         MessageHandler.mailman.update_q.put(Message('exit'))
-        MessageHandler.mailman.join()
+        MessageHandler.mailman.join(timeout=10)
+        MessageHandler.mailman = None
 
 
 if __name__ == '__main__':
