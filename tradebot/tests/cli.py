@@ -10,6 +10,9 @@ class CLITest(unittest.TestCase):
     def setUp(self) -> None:
         self.handler = MessageHandler('test_handler', ['trade_request', 'monitor_config', 'vault_request'])
 
+    def tearDown(self) -> None:
+        self.handler.join()
+
     def test_add(self):
         parse_command('add AAPL shares=10; add AAPL 1 3.0; add AAPL shares=10 buy_price=4.50')
         msg = self.handler.receive()
@@ -80,10 +83,12 @@ class CLITest(unittest.TestCase):
         self.assertEqual(msg.title, 'trade_request', 'Sell command should produce a trade_request message')
         self.assertEqual(msg.msg, 'sell', 'Sell command should produce a sell message')
 
-        self.assertEqual(msg.payload, {'id': 123, 'shares': -1})
+        self.assertEqual(msg.payload['id'], 123)
+        self.assertEqual(msg.payload['shares'], -1)
 
         msg = self.handler.receive()
-        self.assertEqual(msg.payload, {'id': 123, 'shares': 10})
+        self.assertEqual(msg.payload['id'], 123)
+        self.assertEqual(msg.payload['shares'], 10)
 
     def test_update(self):
         parse_command('force-update')
