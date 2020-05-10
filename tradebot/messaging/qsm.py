@@ -5,7 +5,7 @@ from io import TextIOBase
 import sys
 from typing import Optional
 
-from tradebot.messaging.message import MessageHandler
+from tradebot.messaging.message import MessageHandler, Message
 from tradebot.messaging.socket_console_interaction import ConsoleClient
 
 
@@ -13,7 +13,7 @@ class QSM(Process):
     def __init__(self, name: str, msg_list: list = None):
         super().__init__()
         self.is_exitting = False
-        # self.cclient = ConsoleClient(name)
+        self.name = name
 
         self.mappings = {}
         self.setup_states()
@@ -21,9 +21,23 @@ class QSM(Process):
         self.msg_list = msg_list
         self.setup_msg_mappings(msg_list if msg_list is not None else [])
 
-        self.handler = None  # MessageHandler(name, self.msg_map)
+        self.handler = None
         self.states = Queue()
         self.append_state('init')
+
+    @property
+    def __dict__(self) -> dict:
+        d = super().__dict__
+        d['handler'] = self.handler.__dict__
+        d['states'] = 'queue'
+        return d
+
+    @staticmethod
+    def from_dict(d: dict) -> object:
+        sm = QSM(d['name'], d['msg_list'])
+        sm.is_exitting = d['is_exitting']
+        sm.append_state('init')
+        return sm
 
     def join(self, timeout: Optional[float] = -1) -> None:
         self.append_state('exit')
@@ -49,6 +63,9 @@ class QSM(Process):
         for m in msg_list:
             # print('Setting up message state for {} to {}'.format(m, eval('self.' + m + '_msg')))
             self.mappings[m] = eval('self.' + m + '_msg')
+
+    def all_msg(self, msg: Message):
+        pass
 
     def setup_states(self):
         """Sets up the self.mappings dictionary, mapping state names to state methods,
