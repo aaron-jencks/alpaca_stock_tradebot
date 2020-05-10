@@ -10,10 +10,12 @@ class Message:
         self.payload = payload
 
     def __eq__(self, other):
-        if isinstance(other, Message):
+        if isinstance(other, Message.__class__):
             return self.title == other.title
         elif isinstance(other, str):
             return self.title == other
+        else:
+            return False
 
     def __str__(self) -> str:
         return self.title + " " + self.msg + " " + str(self.payload)
@@ -84,7 +86,7 @@ class MessageMailman(Process):
                 else:
                     for s in self.slots.keys():
                         # print('Checking {}\'s subscriptions list'.format(s))
-                        if msg.title in self.slots[s]['subscriptions']:
+                        if msg.title == 'all' or msg.title in self.slots[s]['subscriptions']:
                             try:
                                 self.slots[s]['queue'].put_nowait(msg)
                                 # print('Placed msg into {}\'s mailbox'.format(s))
@@ -136,10 +138,13 @@ class MessageMailman(Process):
     def send(self, msg: Message):
         self.rx.put(msg)
 
-    def receive(self, handler_id: str) -> Message:
+    def receive(self, handler_id: str, block: bool = True) -> Message:
         self.receive_lock.acquire()
         self.update_q.put(Message('receive', handler_id, None))
         msg = self.tx.get()
+        while block and msg is None:
+            self.update_q.put(Message('receive', handler_id, None))
+            msg = self.tx.get()
         self.receive_lock.release()
         return msg
 
@@ -159,13 +164,14 @@ class MessageHandler:
         MessageHandler.mailman.connect(self.handler_id, self.subs)
 
     def __del__(self):
-        MessageHandler.mailman.disconnect(self.handler_id)
+        if MessageHandler.mailman is not None:
+            MessageHandler.mailman.disconnect(self.handler_id)
 
     def send(self, msg: Message):
         MessageHandler.mailman.send(msg)
 
-    def receive(self) -> Message:
-        m = MessageHandler.mailman.receive(self.handler_id)
+    def receive(self, block: bool = True) -> Message:
+        m = MessageHandler.mailman.receive(self.handler_id, block=block)
         return m
 
     def join(self):

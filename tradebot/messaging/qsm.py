@@ -71,7 +71,7 @@ class QSM(Process):
 
     def idle_state(self):
         """This is the state the is triggered when the state machine has nowhere to go to."""
-        m = self.handler.receive()
+        m = self.handler.receive(block=False)
         if m is not None:
             print('Received message {}'.format(m))
             self.append_state(m.title, m)
