@@ -34,7 +34,7 @@ class StockVault(QSM):
         self.mappings['add_monitors'] = self.add_monitors
         self.mappings['remove_stock'] = self.remove_stock
         self.mappings['remove_monitor'] = self.remove_monitor
-        self.mappings['get_stock_names'] = self.get_stock_names
+        self.mappings['get_stock_names'] = self.__get_stock_names
         self.mappings['get_info'] = self.get_info
         self.mappings['update_stock'] = self.update_stock
         self.mappings['update_monitor'] = self.update_monitor
@@ -114,7 +114,7 @@ class StockVault(QSM):
     # endregion
     # region query
 
-    def get_stock_names(self, msg: Message):
+    def __get_stock_names(self, msg: Message):
         results = execute_read_query(self.connection, 'SELECT acronym FROM Stocks')
         self.req_out.put([r[0] for r in results])
 
@@ -167,5 +167,21 @@ class StockVault(QSM):
         })
 
         execute_query(self.connection, update_str)
+
+    # endregion
+
+    # region static methods
+
+    @staticmethod
+    def get_stock_names() -> list:
+        if StockVault.instance is None:
+            StockVault.setup_instance()
+
+        StockVault.instance.req_lock.acquire()
+        StockVault.instance.requests.put(Message('request', 'get_stock_names'))
+        results = StockVault.instance.req_out.get()
+        StockVault.instance.req_lock.release()
+
+        return results
 
     # endregion

@@ -74,11 +74,11 @@ def parse_command(s: str):
             cli_handler.send(Message('vault_request', 'get_stock_names', data['acronym']))
         elif args[0] == 'limit':
             if len(args) == 5:
-                data['limit'] = LimitDescriptor(int(args[1]), args[2], float(args[4]), float(args[3]))
+                data['limit'] = LimitDescriptor(int(args[1]), args[2], float(args[3]), float(args[4]))
             elif len(args) == 4:
-                data['limit'] = LimitDescriptor(int(args[1]), '%', float(args[3]), float(args[2]))
+                data['limit'] = LimitDescriptor(int(args[1]), '%', float(args[2]), float(args[3]))
             else:
-                data['limit'] = LimitDescriptor(int(args[1]), '%', 0.95, 1.05)
+                data['limit'] = LimitDescriptor(int(args[1]), '%', 1.05, 0.95)
             cli_handler.send(Message('monitor_config', 'limit', data['limit']))
         elif args[0] == 'buy':
             data['acronym'] = args[1]
