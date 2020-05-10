@@ -29,9 +29,9 @@ def parse_command(s: str):
     if cli_handler is None:
         __setup_handler()
 
-    lines = s.split(';')
+    lines = s.strip().split(';')
     for l in lines:
-        args = l.split(' ')
+        args = l.strip().split(' ')
         nargs = len(args)
 
         # TODO Add command parsing here...
@@ -71,16 +71,15 @@ def parse_command(s: str):
                     data['acronym'] = v
                 else:
                     data['acronym'] = args[1]
-            cli_handler.send(Message('vault_request', 'list', data['acronym']))
+            cli_handler.send(Message('vault_request', 'get_stock_names', data['acronym']))
         elif args[0] == 'limit':
-            data['id'] = args[1]
             if len(args) == 5:
-                data['limit'] = LimitDescriptor(args[2], float(args[4]), float(args[3]))
+                data['limit'] = LimitDescriptor(int(args[1]), args[2], float(args[4]), float(args[3]))
             elif len(args) == 4:
-                data['limit'] = LimitDescriptor('%', float(args[3]), float(args[2]))
+                data['limit'] = LimitDescriptor(int(args[1]), '%', float(args[3]), float(args[2]))
             else:
-                data['limit'] = LimitDescriptor('%', 0.95, 1.05)
-            cli_handler.send(Message('monitor_config', 'limit', data))
+                data['limit'] = LimitDescriptor(int(args[1]), '%', 0.95, 1.05)
+            cli_handler.send(Message('monitor_config', 'limit', data['limit']))
         elif args[0] == 'buy':
             data['acronym'] = args[1]
             data['shares'] = 1
@@ -97,7 +96,7 @@ def parse_command(s: str):
                                                                           last_price=float(data['bid_price']),
                                                                           shares=int(data['shares']))))
         elif args[0] == 'sell':
-            data['id'] = args[1]
+            data['id'] = int(args[1])
             data['shares'] = -1
             if len(args) == 3:
                 if __is_keyword(args[2]):
