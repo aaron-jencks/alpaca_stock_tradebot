@@ -74,15 +74,22 @@ class MessageMailman(Process):
         while True:
             try:
                 msg = self.rx.get_nowait()
-                print('Mailman received {}'.format(msg))
-                for s in self.slots.keys():
-                    # print('Checking {}\'s subscriptions list'.format(s))
-                    if msg.title in self.slots[s]['subscriptions']:
+                # print('Mailman received {}'.format(msg))
+                if isinstance(msg, AddressedMessage.__class__):
+                    if msg.target in self.slots.keys():
                         try:
-                            self.slots[s]['queue'].put_nowait(msg)
-                            # print('Placed msg into {}\'s mailbox'.format(s))
+                            self.slots[msg.target]['queue'].put_nowait(msg)
                         except Full as _:
-                            print('{} is full, skipping'.format(s))
+                            print('{} is full, skipping'.format(msg.target))
+                else:
+                    for s in self.slots.keys():
+                        # print('Checking {}\'s subscriptions list'.format(s))
+                        if msg.title in self.slots[s]['subscriptions']:
+                            try:
+                                self.slots[s]['queue'].put_nowait(msg)
+                                # print('Placed msg into {}\'s mailbox'.format(s))
+                            except Full as _:
+                                print('{} is full, skipping'.format(s))
             except Empty as _:
                 pass
 
