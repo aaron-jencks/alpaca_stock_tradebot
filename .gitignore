@@ -1,2 +1,4 @@
-./login.py
 __pycache__/
+.idea/
+*.csv
+stocks.txt
