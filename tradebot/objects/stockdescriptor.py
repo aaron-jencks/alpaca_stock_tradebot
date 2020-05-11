@@ -25,11 +25,11 @@ class Stock:
 
     @staticmethod
     def create_sql_table() -> dict:
-        return {'name': 'Stocks', 'properties': {'acronym': 'TEXT PRIMARY KEY',
-                                                 'ask_price': 'FLOAT',
-                                                 'bid_price': 'FLOAT',
-                                                 'ask_size': 'INTEGER',
-                                                 'bid_size': 'INTEGER'}}
+        return {'name': 'Stocks', 'properties': {'acronym': 'text primary key',
+                                                 'ask_price': 'float',
+                                                 'bid_price': 'float',
+                                                 'ask_size': 'integer',
+                                                 'bid_size': 'integer'}}
 
     @staticmethod
     def get_tuple_names() -> str:
@@ -95,7 +95,7 @@ class StockUpdate(Stock):
                                                        'bid_price': 'FLOAT',
                                                        'ask_size': 'INTEGER',
                                                        'bid_size': 'INTEGER',
-                                                       'date': 'DATETIME NOT NULL',
+                                                       'date': 'text NOT NULL',
                                                        'FOREIGN KEY (stock_acronym)': 'REFERENCES Stocks (acronym)'}}
 
     @staticmethod
@@ -103,10 +103,10 @@ class StockUpdate(Stock):
         return '(stock_acronym, ask_price, bid_price, ask_size, bid_size, date)'
 
     def to_tuple_str(self) -> str:
-        return '("{}", {}, {}, {}, {}, {})'.format(self.acronym,
-                                                   self.ask_price, self.bid_price,
-                                                   self.ask_size, self.bid_size,
-                                                   self.date)
+        return '("{}", {}, {}, {}, {}, "{}")'.format(self.acronym,
+                                                     self.ask_price, self.bid_price,
+                                                     self.ask_size, self.bid_size,
+                                                     self.date)
 
 
 class StockTransaction:
@@ -130,7 +130,7 @@ class StockTransaction:
                                                             'acronym': 'TEXT',
                                                             'buy_sell': 'BOOL NOT NULL',
                                                             'price': 'FLOAT NOT NULL',
-                                                            'date': 'DATETIME NOT NULL',
+                                                            'date': 'text NOT NULL',
                                                             'FOREIGN KEY (managed_stock_id)':
                                                                 'REFERENCES ManagedStocks (id)'}}
 

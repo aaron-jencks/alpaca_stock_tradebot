@@ -1,6 +1,6 @@
 import os
 
-from tradebot.objects.stockdescriptor import StockTransaction, StockUpdateDescriptor
+from tradebot.objects.stockdescriptor import StockTransaction, StockUpdate
 from tradebot.messaging.qsm import QSM
 from tradebot.messaging.message import Message
 

@@ -4,6 +4,7 @@ from tradebot.adapters.sql_adapter import *
 from tradebot.objects.stockdescriptor import ManagedStock, Stock, StockTransaction, StockUpdate
 from tradebot.objects.balancedescriptor import BalanceUpdate
 from tradebot.objects.limitdescriptor import LimitDescriptor
+import settings
 
 from multiprocessing import Queue, Lock
 from queue import Empty
@@ -13,17 +14,18 @@ class StockVault(QSM):
 
     instance = None
 
-    def __init__(self, name: str = 'vault'):
+    def __init__(self, name: str = 'vault', db_directory: str = settings.file_location):
         super().__init__(name, ['vault_request'])
         self.requestq = Queue()
         self.req_lock = Lock()
         self.req_out = Queue()
         self.connection = None
+        self.db_directory = db_directory
 
     @staticmethod
-    def setup_instance(name: str = 'vault'):
+    def setup_instance(name: str = 'vault', db_directory: str = settings.file_location):
         if StockVault.instance is None:
-            StockVault.instance = StockVault(name)
+            StockVault.instance = StockVault(name, db_directory)
             StockVault.instance.start()
 
     def setup_states(self):
@@ -44,7 +46,7 @@ class StockVault(QSM):
         self.mappings['update_limit'] = self.update_limit
 
     def initial_state(self):
-        self.connection = setup_db()
+        self.connection = setup_db(self.db_directory)
 
     def idle_state(self):
         try:
@@ -56,6 +58,10 @@ class StockVault(QSM):
             pass
 
         super().idle_state()
+
+    def exit_state(self):
+        self.connection.close()
+        super().exit_state()
 
     def vault_request_msg(self, msg: Message):
         self.requestq.put(msg)
@@ -178,7 +184,7 @@ class StockVault(QSM):
             StockVault.setup_instance()
 
         StockVault.instance.req_lock.acquire()
-        StockVault.instance.requests.put(Message('request', 'get_stock_names'))
+        StockVault.instance.requestq.put(Message('request', 'get_stock_names'))
         results = StockVault.instance.req_out.get()
         StockVault.instance.req_lock.release()
 

@@ -6,28 +6,28 @@ from tradebot.objects.limitdescriptor import LimitDescriptor
 import settings
 
 
-def is_files_setup() -> bool:
+def is_files_setup(directory: str) -> bool:
     """Returns true if the current files are all setup properly"""
-    return path.exists(settings.file_location) and \
-           path.exists(path.join(settings.file_location, settings.db_name)) and \
-           path.exists(path.join(settings.file_location, settings.bank_balance_file)) and \
-           path.exists(path.join(settings.file_location, settings.stock_transaction_file)) and \
-           path.exists(path.join(settings.file_location, settings.stock_history_file)) and \
-           path.exists(path.join(settings.file_location, settings.state_save_file)) and \
+    return path.exists(directory) and \
+           path.exists(path.join(directory, settings.db_name)) and \
+           path.exists(path.join(directory, settings.bank_balance_file)) and \
+           path.exists(path.join(directory, settings.stock_transaction_file)) and \
+           path.exists(path.join(directory, settings.stock_history_file)) and \
+           path.exists(path.join(directory, settings.state_save_file)) and \
            path.exists(settings.tmp_dir)
 
 
-def setup_files():
+def setup_files(directory: str):
     print('Setting up files')
-    os.makedirs(settings.file_location, exist_ok=True)
+    os.makedirs(directory, exist_ok=True)
     os.makedirs(settings.tmp_dir, exist_ok=True)
     print('Creating file placeholders')
-    db_fp = open(path.join(settings.file_location, settings.db_name), mode='w+')
-    bal_fp = open(path.join(settings.file_location, settings.bank_balance_file), mode='w+')
-    trans_fp = open(path.join(settings.file_location, settings.stock_transaction_file), mode='w+')
-    hist_fp = open(path.join(settings.file_location, settings.stock_history_file), mode='w+')
-    state_fp = open(path.join(settings.file_location, settings.state_save_file), mode='w+')
-    fps = [db_fp, bal_fp, trans_fp, hist_fp, state_fp]
+    # db_fp = open(path.join(directory, settings.db_name), mode='w+')
+    bal_fp = open(path.join(directory, settings.bank_balance_file), mode='w+')
+    trans_fp = open(path.join(directory, settings.stock_transaction_file), mode='w+')
+    hist_fp = open(path.join(directory, settings.stock_history_file), mode='w+')
+    state_fp = open(path.join(directory, settings.state_save_file), mode='w+')
+    fps = [bal_fp, trans_fp, hist_fp, state_fp]
     for fp in fps:
         fp.close()
     print('Files setup')

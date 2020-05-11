@@ -6,7 +6,7 @@ import time
 
 from tradebot.messaging.qsm import QSM
 from tradebot.messaging.message import Message
-from tradebot.objects.stockdescriptor import StockDescriptor
+from tradebot.objects.stockdescriptor import ManagedStock, Stock
 # from login import username, password, verification_method
 
 
@@ -81,11 +81,11 @@ class PyrhAdapter(QSM):
                 print('Something went wrong, trying again')
                 time.sleep(5)
 
-    def buy(self, descriptor: StockDescriptor):
+    def buy(self, descriptor: ManagedStock):
         # self.rbn.place_buy_order(self.rbn.get_quote(descriptor.acronym)['instrument'], descriptor.shares)
         print("Buying {}".format(descriptor))
 
-    def sell(self, descriptor: StockDescriptor):
+    def sell(self, descriptor: ManagedStock):
         # self.rbn.place_sell_order(self.rbn.get_quote(descriptor.acronym)['instrument'], descriptor.shares)
         print("Selling {}".format(descriptor))
 
@@ -96,8 +96,8 @@ class PyrhAdapter(QSM):
         self.request_lock.release()
         return d
 
-    def place_buy(self, s: StockDescriptor):
+    def place_buy(self, s: ManagedStock):
         self.client_req.put(Message('pyrh_request', 'buy', s))
 
-    def place_sell(self, s: StockDescriptor):
+    def place_sell(self, s: ManagedStock):
         self.client_req.put(Message('pyrh_request', 'sell', s))

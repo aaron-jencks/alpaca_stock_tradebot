@@ -9,11 +9,12 @@ import tradebot.objects.balancedescriptor as bd
 
 
 def execute_query(connection: sqlite3.Connection, query: str):
+    print('Executing query:\n{}'.format(query))
     cursor = connection.cursor()
     try:
         cursor.execute(query)
         connection.commit()
-        print("Query executed successfully")
+        print("Query executed successfully:\n{}".format(query))
     except sqlite3.Error as e:
         print(f"The error '{e}' occurred")
 
@@ -30,7 +31,7 @@ def execute_read_query(connection: sqlite3.Connection, query: str) -> list:
 
 def setup_table(name: str, columns: dict) -> str:
     """Creates a SQL Query for creating a table given the name and the column names/types"""
-    result = "CREATE TABLE IF NOT EXISTS {} (".format(name)
+    result = "create table if not exists {} (".format(name)
     for k in columns.keys():
         result += k + " " + columns[k] + ", "
     return result[:-2] + ");"
@@ -40,7 +41,7 @@ def setup_record_insertion(table: str, tuple_names: str, records: list) -> str:
     result = "INSERT INTO\n\t{} {}\nVALUES\n".format(table, tuple_names)
     for r in records:
         result += "\t{},\n".format(r)
-    return result[:-1] + ';'
+    return result[:-2] + ';'
 
 
 def setup_record_update(table: str, properties: dict, selection_properties: dict) -> str:
@@ -70,11 +71,11 @@ def __setup_tables(conn: sqlite3.Connection):
         execute_query(conn, t)
 
 
-def setup_db() -> sqlite3.Connection:
-    if not is_files_setup():
-        setup_files()
+def setup_db(directory: str) -> sqlite3.Connection:
+    if not is_files_setup(directory):
+        setup_files(directory)
     try:
-        conn = sqlite3.connect(path.join(file_location, db_name))
+        conn = sqlite3.connect(path.join(directory, db_name))
         __setup_tables(conn)
         return conn
     except sqlite3.Error as e:
