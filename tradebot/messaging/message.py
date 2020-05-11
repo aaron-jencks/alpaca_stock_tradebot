@@ -2,6 +2,8 @@ import json, time
 from multiprocessing import Process, Queue, Lock
 from queue import Empty, Full
 
+from tradebot.objects.dictable import Dictable
+
 
 class Message:
     def __init__(self, title: str, msg: str = '', payload: object = None):
@@ -156,7 +158,7 @@ class MessageMailman(Process):
         return msg
 
 
-class MessageHandler:
+class MessageHandler(Dictable):
 
     mailman = None
 
@@ -169,11 +171,19 @@ class MessageHandler:
             MessageHandler.mailman.start()
 
         MessageHandler.mailman.connect(self.handler_id, self.subs)
-        time.sleep(0.1) # To ensure that the connection gets handled before any messages are sent.
+        time.sleep(0.1)  # To ensure that the connection gets handled before any messages are sent.
 
     def __del__(self):
         if MessageHandler.mailman is not None:
             MessageHandler.mailman.disconnect(self.handler_id)
+
+    @property
+    def dict(self) -> dict:
+        return {'subscriptions': self.subs, 'handler_id': self.handler_id}
+
+    @staticmethod
+    def from_dict(d: dict) -> object:
+        return MessageHandler(d['handler_id'], d['subscriptions'])
 
     def send(self, msg: Message):
         MessageHandler.mailman.send(msg)
@@ -183,10 +193,11 @@ class MessageHandler:
         return m
 
     def join(self):
-        self.send(Message('exit'))
-        MessageHandler.mailman.update_q.put(Message('exit'))
-        MessageHandler.mailman.join(timeout=10)
-        MessageHandler.mailman = None
+        if MessageHandler.mailman is not None:
+            self.send(Message('exit'))
+            MessageHandler.mailman.update_q.put(Message('exit'))
+            MessageHandler.mailman.join(timeout=10)
+            MessageHandler.mailman = None
 
 
 if __name__ == '__main__':

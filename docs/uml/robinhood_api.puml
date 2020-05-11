@@ -1,0 +1,36 @@
+@startuml Robinhood API Documentation
+
+class TokenTimer {
+    + token_time_limi: int
+}
+
+object Timer
+
+Timer <|-- TokenTimer
+
+class AuthenticationManager {
+    + username: string
+    + password: string
+    + authentication_method: string
+    - oauth_token: string
+
+    + login()
+    + logout()
+    + refresh()
+}
+
+class RobinhoodAPI {
+    + logged_in: bool
+    + quote(s: Stock): Stock
+    + buy(s: Stock, shares: int): ManagedStock
+    + sell(s: ManagedStock, shares: int): ManagedStock
+    + get_profile_balance(): float
+    + login(username: string, password: string, challenge_type: string): bool
+    + logout()
+    # update_token()
+}
+
+TokenTimer "1" .. "1" RobinhoodAPI: > Triggers
+AuthenticationManager "1" .. "1" RobinhoodAPI: < Uses
+
+@enduml

@@ -1,6 +1,7 @@
 
 username = 'Your Username/Email Here'
 password = 'Your Password here'
+challenge_type = 'sms'
 
 # This is the section for file configuration
 

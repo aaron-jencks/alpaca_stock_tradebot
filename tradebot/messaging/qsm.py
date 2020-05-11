@@ -2,14 +2,16 @@ from multiprocessing import Process, Queue
 from queue import Full, Empty
 import multiprocessing.connection
 from io import TextIOBase
-import sys
+import sys, inspect
 from typing import Optional
+from copy import deepcopy
 
 from tradebot.messaging.message import MessageHandler, Message
 from tradebot.messaging.socket_console_interaction import ConsoleClient
+from tradebot.objects.dictable import Dictable
 
 
-class QSM(Process):
+class QSM(Process, Dictable):
     def __init__(self, name: str, msg_list: list = None):
         super().__init__()
         self.is_exitting = False
@@ -18,34 +20,38 @@ class QSM(Process):
         self.mappings = {}
         self.setup_states()
 
-        self.msg_list = msg_list
-        self.setup_msg_mappings(msg_list if msg_list is not None else [])
+        self.msg_list = msg_list if msg_list is not None else []
+        if 'all' not in self.msg_list:
+            self.msg_list.append('all')
 
-        self.handler = None
+        self.setup_msg_mappings(self.msg_list)
+
+        self.handler = MessageHandler(self.name, self.msg_list)  # Because otherwise we can't join from 'final'
         self.states = Queue()
         self.append_state('init')
 
     @property
-    def __dict__(self) -> dict:
-        d = super().__dict__
-        d['handler'] = self.handler.__dict__
-        d['states'] = 'queue'
+    def dict(self) -> dict:
+        print('Converting qsm to dict')
+        d = {'name': self.name,
+             'msg_list': self.msg_list,
+             'handler': self.handler.dict}
         return d
 
     @staticmethod
     def from_dict(d: dict) -> object:
         sm = QSM(d['name'], d['msg_list'])
-        sm.is_exitting = d['is_exitting']
+        sm.handler = MessageHandler.from_dict(d['handler'])
         sm.append_state('init')
         return sm
 
     def join(self, timeout: Optional[float] = -1) -> None:
         self.append_state('exit')
         super().join(timeout=timeout)
+        self.handler.join()
 
     def run(self) -> None:
         # sys.stdin = self.cclient
-        self.handler = MessageHandler(self.name, self.msg_list)  # Because otherwise we can't join from 'final'
         while not self.is_exitting:
             try:
                 s = self.states.get_nowait()
@@ -65,7 +71,12 @@ class QSM(Process):
             self.mappings[m] = eval('self.' + m + '_msg')
 
     def all_msg(self, msg: Message):
-        pass
+        if msg.msg == 'save':
+            self.handler.send(Message('json_update', self.name, {'dtype': str(type(self).__name__),
+                                                                 'package': inspect.getmodulename(
+                                                                     inspect.getfile(self.__class__)),
+                                                                 'path': str(inspect.getfile(self.__class__)),
+                                                                 'data': self.dict}))
 
     def setup_states(self):
         """Sets up the self.mappings dictionary, mapping state names to state methods,
@@ -106,7 +117,7 @@ class QSM(Process):
     def final_state(self):
         """This is the final state to execute, always"""
         self.is_exitting = True
-        self.handler.join()
+        # self.handler.join()
 
 
 if __name__ == '__main__':
