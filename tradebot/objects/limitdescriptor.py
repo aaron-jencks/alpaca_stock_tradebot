@@ -57,4 +57,4 @@ class LimitDescriptor:
         return '(managed_stock_id, type, upper, lower)'
 
     def to_tuple_str(self) -> str:
-        return '({}, {}, {}, {})'.format(self.managed_stock_id, self.limit_type, self.upper, self.lower)
+        return '({}, "{}", {}, {})'.format(self.managed_stock_id, self.limit_type, self.upper, self.lower)

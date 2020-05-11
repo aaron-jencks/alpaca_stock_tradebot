@@ -36,9 +36,9 @@ class Stock:
         return '(acronym, ask_price, bid_price, ask_size, bid_size)'
 
     def to_tuple_str(self) -> str:
-        return '({}, {}, {}, {}, {})'.format(self.acronym,
-                                             self.ask_price, self.bid_price,
-                                             self.ask_size, self.bid_size)
+        return '("{}", {}, {}, {}, {})'.format(self.acronym,
+                                               self.ask_price, self.bid_price,
+                                               self.ask_size, self.bid_size)
 
 
 class ManagedStock:
@@ -72,7 +72,7 @@ class ManagedStock:
         return '(stock_acronym, shares, last_price)'
 
     def to_tuple_str(self) -> str:
-        return '({}, {}, {})'.format(self.acronym, self.shares, self.last_price)
+        return '("{}", {}, {})'.format(self.acronym, self.shares, self.last_price)
 
 
 class StockUpdate(Stock):
@@ -103,10 +103,10 @@ class StockUpdate(Stock):
         return '(stock_acronym, ask_price, bid_price, ask_size, bid_size, date)'
 
     def to_tuple_str(self) -> str:
-        return '({}, {}, {}, {}, {}, {})'.format(self.acronym,
-                                                 self.ask_price, self.bid_price,
-                                                 self.ask_size, self.bid_size,
-                                                 self.date)
+        return '("{}", {}, {}, {}, {}, {})'.format(self.acronym,
+                                                   self.ask_price, self.bid_price,
+                                                   self.ask_size, self.bid_size,
+                                                   self.date)
 
 
 class StockTransaction:
@@ -139,4 +139,4 @@ class StockTransaction:
         return '(managed_stock_id, acronym, buy_sell, price, date)'
 
     def to_tuple_str(self) -> str:
-        return '({}, {}, {}, {}, {})'.format(self.managed_stock_id, self.acronym, self.buy, self.price, self.date)
+        return '({}, "{}", {}, {}, "{}")'.format(self.managed_stock_id, self.acronym, self.buy, self.price, self.date)

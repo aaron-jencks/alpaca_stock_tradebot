@@ -18,4 +18,4 @@ class BalanceUpdate:
         return '(balance, date)'
 
     def to_tuple_str(self) -> str:
-        return '({}, {})'.format(self.balance, self.date)
+        return '({}, "{}")'.format(self.balance, self.date)
