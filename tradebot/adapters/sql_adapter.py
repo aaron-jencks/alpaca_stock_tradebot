@@ -81,3 +81,14 @@ def setup_db(directory: str) -> sqlite3.Connection:
     except sqlite3.Error as e:
         print('Something went wrong: {}'.format(e))
         return None
+
+
+def connect_db(directory: str) -> sqlite3.Connection:
+    if not is_files_setup(directory):
+        return setup_db(directory)
+    else:
+        try:
+            return sqlite3.connect(path.join(directory, db_name))
+        except sqlite3.Error as e:
+            print('Something went wrong: {}'.format(e))
+            return None
