@@ -1,5 +1,6 @@
 import unittest
 import os.path as path
+import os
 import time
 
 import tradebot.adapters.sql_adapter as sql
@@ -18,6 +19,10 @@ class SQLTestCase(unittest.TestCase):
     def tearDown(self) -> None:
         StockVault.instance.join()
         self.client.join()
+        with os.scandir('/tmp/robin_test_db/') as it:
+            for entry in it:
+                os.remove(entry.path)
+        os.rmdir('/tmp/robin_test_db')
 
     def test_file_creation(self):
         self.assertTrue(path.exists(path.join('/tmp/robin_test_db', db_name)), 'Can create test files without error')

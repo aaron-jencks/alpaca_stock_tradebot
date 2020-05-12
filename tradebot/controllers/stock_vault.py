@@ -20,6 +20,7 @@ class StockVault(QSM):
         self.req_lock = Lock()
         self.req_out = Queue()
         self.connection = None
+        self.is_connected = False
         self.db_directory = db_directory
 
     @staticmethod
@@ -44,23 +45,38 @@ class StockVault(QSM):
         self.mappings['add_balance_update'] = self.add_balance_update
         self.mappings['add_limit'] = self.add_limit
         self.mappings['update_limit'] = self.update_limit
+        self.mappings['open_connection'] = self.open_conn
+        self.mappings['close_connection'] = self.close_conn
+
+    def open_conn(self):
+        self.connection = connect_db(self.db_directory)
+        if self.connection is not None:
+            self.is_connected = True
+
+    def close_conn(self):
+        if self.is_connected:
+            self.connection.close()
+            self.is_connected = False
 
     def initial_state(self):
-        self.connection = setup_db(self.db_directory)
+        pass
 
     def idle_state(self):
         try:
             req = self.requestq.get_nowait()
 
             if req.msg in self.mappings:
+                self.append_state('open_connection')
                 self.append_state(req.msg, req)
+                self.append_state('close_connection')
         except Empty as _:
             pass
 
         super().idle_state()
 
     def exit_state(self):
-        self.connection.close()
+        if self.is_connected:
+            self.append_state('close_connection')
         super().exit_state()
 
     def vault_request_msg(self, msg: Message):
@@ -69,64 +85,79 @@ class StockVault(QSM):
     # region add
 
     def add_stock(self, msg: Message):
-        ins_str = setup_record_insertion('ManagedStocks',
-                                         ManagedStock.get_tuple_names(), [msg.payload.to_tuple_str()])
-        execute_query(self.connection, ins_str)
+        if self.is_connected:
+            ins_str = setup_record_insertion('ManagedStocks',
+                                             ManagedStock.get_tuple_names(), [msg.payload.to_tuple_str()])
+            execute_query(self.connection, ins_str)
 
     def add_stocks(self, msg: Message):
-        ins_str = setup_record_insertion('ManagedStocks',
-                                         ManagedStock.get_tuple_names(),
-                                         [r.to_tuple_str() for r in msg.payload])
-        execute_query(self.connection, ins_str)
+        if self.is_connected:
+            ins_str = setup_record_insertion('ManagedStocks',
+                                             ManagedStock.get_tuple_names(),
+                                             [r.to_tuple_str() for r in msg.payload])
+            execute_query(self.connection, ins_str)
 
     def add_monitor(self, msg: Message):
-        ins_str = setup_record_insertion('Stocks',
-                                         Stock.get_tuple_names(), [msg.payload.to_tuple_str()])
-        execute_query(self.connection, ins_str)
+        if self.is_connected:
+            ins_str = setup_record_insertion('Stocks',
+                                             Stock.get_tuple_names(), [msg.payload.to_tuple_str()])
+            execute_query(self.connection, ins_str)
 
     def add_monitors(self, msg: Message):
-        ins_str = setup_record_insertion('Stocks',
-                                         Stock.get_tuple_names(),
-                                         [r.to_tuple_str() for r in msg.payload])
-        execute_query(self.connection, ins_str)
+        if self.is_connected:
+            ins_str = setup_record_insertion('Stocks',
+                                             Stock.get_tuple_names(),
+                                             [r.to_tuple_str() for r in msg.payload])
+            execute_query(self.connection, ins_str)
 
     def add_transaction(self, msg: Message):
-        ins_str = setup_record_insertion('StockTransactions',
-                                         StockTransaction.get_tuple_names(),
-                                         [msg.payload.to_tuple_str()])
-        execute_query(self.connection, ins_str)
+        if self.is_connected:
+            ins_str = setup_record_insertion('StockTransactions',
+                                             StockTransaction.get_tuple_names(),
+                                             [msg.payload.to_tuple_str()])
+            execute_query(self.connection, ins_str)
 
     def add_balance_update(self, msg: Message):
-        ins_str = setup_record_insertion('BalanceLedger',
-                                         BalanceUpdate.get_tuple_names(),
-                                         [msg.payload.to_tuple_str()])
-        execute_query(self.connection, ins_str)
+        if self.is_connected:
+            ins_str = setup_record_insertion('BalanceLedger',
+                                             BalanceUpdate.get_tuple_names(),
+                                             [msg.payload.to_tuple_str()])
+            execute_query(self.connection, ins_str)
 
     def add_limit(self, msg: Message):
-        ins_str = setup_record_insertion('StockLimits',
-                                         LimitDescriptor.get_tuple_names(),
-                                         [msg.payload.to_tuple_str()])
-        execute_query(self.connection, ins_str)
+        if self.is_connected:
+            ins_str = setup_record_insertion('StockLimits',
+                                             LimitDescriptor.get_tuple_names(),
+                                             [msg.payload.to_tuple_str()])
+            execute_query(self.connection, ins_str)
 
     # endregion
     # region remove
 
     def remove_stock(self, msg: Message):
-        execute_query(self.connection, 'DELETE FROM ManagedStocks WHERE id = {}'.format(msg.payload.table_id))
+        if self.is_connected:
+            execute_query(self.connection, 'DELETE FROM ManagedStocks WHERE id = {}'.format(msg.payload.table_id))
 
     def remove_monitor(self, msg: Message):
-        execute_query(self.connection, 'DELETE FROM Stocks WHERE acronym = {}'.format(msg.payload.acronym))
+        if self.is_connected:
+            execute_query(self.connection, 'DELETE FROM Stocks WHERE acronym = {}'.format(msg.payload.acronym))
 
     # endregion
     # region query
 
     def __get_stock_names(self, msg: Message):
-        results = execute_read_query(self.connection, 'SELECT acronym FROM Stocks')
-        self.req_out.put([r[0] for r in results])
+        if self.is_connected:
+            results = execute_read_query(self.connection, 'SELECT acronym FROM Stocks')
+            self.req_out.put([r[0] for r in results])
+        else:
+            self.req_out.put(None)
 
     def get_info(self, msg: Message):
-        result = execute_read_query(self.connection, 'SELECT * FROM Stocks WHERE acronym=?{}'.format(msg.payload))[0]
-        self.req_out.put(Stock(result[0], result[1], result[2], result[3], result[4]))
+        if self.is_connected:
+            result = execute_read_query(self.connection, 'SELECT * FROM Stocks WHERE acronym=?{}'.format(msg.payload))[0]
+            self.req_out.put(Stock(result[0], result[1], result[2], result[3], result[4]))
+        else:
+            self.req_out.put(None)
 
     # endregion
     # region updates
