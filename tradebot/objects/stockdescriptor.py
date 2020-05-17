@@ -1,4 +1,5 @@
 import datetime as dt
+from settings import date_format
 
 
 def get_sql_tables() -> list:
@@ -82,7 +83,7 @@ class StockUpdate(Stock):
                  bid_price: float = 0, bid_size: int = 1):
         super().__init__(acronym, ask_price, bid_price, ask_size, bid_size)
         self.table_id = table_id
-        self.date = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.date = dt.datetime.now().strftime(date_format)
 
     def __str__(self):
         return '{} '.format(self.date) + super().__str__()
@@ -108,6 +109,15 @@ class StockUpdate(Stock):
                                                      self.ask_size, self.bid_size,
                                                      self.date)
 
+    @staticmethod
+    def get_headers() -> list:
+        return ['Day', 'Year', 'Hour', 'Minute', 'Second', 'Name', 'Shares', 'Ask_Price', 'Bid_Price']
+
+    def to_array(self) -> list:
+        dtm = dt.datetime.strptime(self.date, date_format)
+        return [dtm.timetuple().tm_yday, dtm.year, dtm.hour, dtm.minute, dtm.second,
+                self.acronym, 1, self.ask_price, self.bid_price]
+
 
 class StockTransaction:
     def __init__(self, managed_stock_id: int, acronym: str, buy: bool, price: float = 0, shares: int = 1):
@@ -116,7 +126,7 @@ class StockTransaction:
         self.buy = buy
         self.price = price
         self.shares = shares
-        self.date = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.date = dt.datetime.now().strftime(date_format)
 
     def __str__(self) -> str:
         return '{} {} ({} x {}) for ${}'.format(self.date,

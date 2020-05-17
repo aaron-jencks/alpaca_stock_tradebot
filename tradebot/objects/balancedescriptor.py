@@ -1,10 +1,11 @@
 import datetime as dt
+from settings import date_format
 
 
 class BalanceUpdate:
     def __init__(self, balance: float):
         self.balance = balance
-        self.date = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.date = dt.datetime.now().strftime(date_format)
 
     @staticmethod
     def create_sql_table() -> dict:
