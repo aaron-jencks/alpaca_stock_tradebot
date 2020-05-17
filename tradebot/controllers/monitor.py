@@ -45,7 +45,8 @@ class StockMonitor(QSM):
             print('Updated {}'.format(s))
             if prev_ask != s.ask_price or prev_bid != s.bid_price:
                 self.handler.send(Message('monitor_update', self.name,
-                                          StockUpdateDescriptor(s.acronym, s.bid_price, s.ask_price, s.shares)))
+                                          StockUpdate(-1, s.acronym, s.ask_price, int(quote['ask_size']),
+                                                      s.bid_price, int(quote['bid_size']))))
         self.append_state('check_triggers')
 
     def check_triggers(self):

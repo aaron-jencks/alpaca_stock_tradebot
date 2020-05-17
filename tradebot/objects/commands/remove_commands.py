@@ -14,7 +14,7 @@ class RemoveStock(Command):
         return data
 
     def handle(self, handler: MessageHandler, data: dict) -> None:
-        handler.send(Message('vault_request', 'remove_stock', ManagedStock('', data['id'], data['shares'])))
+        handler.send(Message('vault_request', 'remove_stock', ManagedStock('None', data['id'], data['shares'])))
 
 
 class RemoveMonitor(Command):

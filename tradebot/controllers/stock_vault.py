@@ -8,6 +8,7 @@ import settings
 
 from multiprocessing import Queue, Lock
 from queue import Empty
+import time
 
 
 class StockVault(QSM):
@@ -31,14 +32,15 @@ class StockVault(QSM):
 
     def setup_states(self):
         super().setup_states()
-        self.mappings['add_stock'] = self.add_stock
+        self.mappings['add_stock'] = self.__add_stock
         self.mappings['add_stocks'] = self.add_stocks
         self.mappings['add_monitor'] = self.add_monitor
         self.mappings['add_monitors'] = self.add_monitors
         self.mappings['remove_stock'] = self.remove_stock
         self.mappings['remove_monitor'] = self.remove_monitor
         self.mappings['get_stock_names'] = self.__get_stock_names
-        self.mappings['get_info'] = self.get_info
+        self.mappings['get_stock_ids'] = self.__get_stock_ids
+        self.mappings['get_info'] = self.__get_info
         self.mappings['update_stock'] = self.update_stock
         self.mappings['update_monitor'] = self.update_monitor
         self.mappings['add_transaction'] = self.add_transaction
@@ -49,14 +51,17 @@ class StockVault(QSM):
         self.mappings['close_connection'] = self.close_conn
 
     def open_conn(self):
+        print('Opening connection')
         self.connection = connect_db(self.db_directory)
         if self.connection is not None:
             self.is_connected = True
 
     def close_conn(self):
+        print('Closing connection')
         if self.is_connected:
             self.connection.close()
             self.is_connected = False
+            time.sleep(0.5)
 
     def initial_state(self):
         pass
@@ -84,14 +89,29 @@ class StockVault(QSM):
 
     # region add
 
-    def add_stock(self, msg: Message):
+    def __add_stock(self, msg: Message):
         if self.is_connected:
+            monitors = execute_read_query(self.connection, 'select acronym from Stocks')
+            monitors = [m[0] for m in monitors] if monitors is not None else []
+            if msg.payload.acronym not in monitors:
+                print('Adding monitor for {} as well'.format(msg.payload.acronym))
+                self.requestq.put(Message('vault_request', 'add_monitor', Stock(msg.payload.acronym)))
+
             ins_str = setup_record_insertion('ManagedStocks',
                                              ManagedStock.get_tuple_names(), [msg.payload.to_tuple_str()])
             execute_query(self.connection, ins_str)
 
     def add_stocks(self, msg: Message):
         if self.is_connected:
+            monitors = execute_read_query(self.connection, 'select acronym from Stocks')
+            monitors = [m[0] for m in monitors] if monitors is not None else []
+            needs_adding = []
+            for a in msg.payload:
+                if a.acronym not in monitors:
+                    print('Adding monitor for {} as well'.format(a.acronym))
+                    needs_adding.append(Stock(a.acronym))
+            self.requestq.put(Message('vault_request', 'add_monitors', needs_adding))
+
             ins_str = setup_record_insertion('ManagedStocks',
                                              ManagedStock.get_tuple_names(),
                                              [r.to_tuple_str() for r in msg.payload])
@@ -99,6 +119,7 @@ class StockVault(QSM):
 
     def add_monitor(self, msg: Message):
         if self.is_connected:
+            print('Adding monitor for {}'.format(msg.payload.acronym))
             ins_str = setup_record_insertion('Stocks',
                                              Stock.get_tuple_names(), [msg.payload.to_tuple_str()])
             execute_query(self.connection, ins_str)
@@ -140,7 +161,7 @@ class StockVault(QSM):
 
     def remove_monitor(self, msg: Message):
         if self.is_connected:
-            execute_query(self.connection, 'DELETE FROM Stocks WHERE acronym = {}'.format(msg.payload.acronym))
+            execute_query(self.connection, 'DELETE FROM Stocks WHERE acronym = "{}"'.format(msg.payload.acronym))
 
     # endregion
     # region query
@@ -148,13 +169,21 @@ class StockVault(QSM):
     def __get_stock_names(self, msg: Message):
         if self.is_connected:
             results = execute_read_query(self.connection, 'SELECT acronym FROM Stocks')
-            self.req_out.put([r[0] for r in results])
+            self.req_out.put([r[0] for r in results] if results is not None else None)
         else:
             self.req_out.put(None)
 
-    def get_info(self, msg: Message):
+    def __get_stock_ids(self, msg: Message):
         if self.is_connected:
-            result = execute_read_query(self.connection, 'SELECT * FROM Stocks WHERE acronym=?{}'.format(msg.payload))[0]
+            results = execute_read_query(self.connection, 'SELECT id FROM ManagedStocks')
+            self.req_out.put([r[0] for r in results] if results is not None else None)
+        else:
+            self.req_out.put(None)
+
+    def __get_info(self, msg: Message):
+        if self.is_connected:
+            result = execute_read_query(self.connection,
+                                        'SELECT * FROM Stocks WHERE acronym = "{}"'.format(msg.payload))[0]
             self.req_out.put(Stock(result[0], result[1], result[2], result[3], result[4]))
         else:
             self.req_out.put(None)
@@ -215,10 +244,60 @@ class StockVault(QSM):
             StockVault.setup_instance()
 
         StockVault.instance.req_lock.acquire()
+        print('Acquired lock')
         StockVault.instance.requestq.put(Message('request', 'get_stock_names'))
+        print('Waiting for response')
         results = StockVault.instance.req_out.get()
         StockVault.instance.req_lock.release()
 
         return results
+
+    @staticmethod
+    def get_stock_ids() -> list:
+        if StockVault.instance is None:
+            StockVault.setup_instance()
+
+        StockVault.instance.req_lock.acquire()
+        print('Acquired lock')
+        StockVault.instance.requestq.put(Message('request', 'get_stock_ids'))
+        print('Waiting for response')
+        results = StockVault.instance.req_out.get()
+        StockVault.instance.req_lock.release()
+
+        return results
+
+    @staticmethod
+    def get_info(acronym: str) -> Stock:
+        if StockVault.instance is None:
+            StockVault.setup_instance()
+
+        StockVault.instance.req_lock.acquire()
+        # print('Acquired lock')
+        StockVault.instance.requestq.put(Message('request', 'get_info', acronym))
+        # print('Waiting for response')
+        result = StockVault.instance.req_out.get()
+        StockVault.instance.req_lock.release()
+
+        return result
+
+    @staticmethod
+    def add_stock(s: ManagedStock) -> int:
+        if StockVault.instance is None:
+            StockVault.setup_instance()
+
+        StockVault.instance.req_lock.acquire()
+        # print('Acquired lock')
+        StockVault.instance.requestq.put(Message('request', 'add_stock', s))
+        # print('Waiting for response')
+        result = StockVault.instance.req_out.get()
+        StockVault.instance.req_lock.release()
+
+        return result
+
+    @staticmethod
+    def sjoin():
+        if StockVault.instance is not None:
+            StockVault.instance.join()
+            StockVault.instance = None
 
     # endregion

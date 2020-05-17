@@ -6,7 +6,7 @@ from tradebot.objects.balancedescriptor import BalanceUpdate
 
 class TradeController(QSM):
     def __init__(self, name: str, balance: float):
-        super().__init__(name, ['trade_control'])
+        super().__init__(name, ['trade_control', 'trade_request'])
         self.stocks = []
         self.balance = balance
 

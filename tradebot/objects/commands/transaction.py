@@ -2,17 +2,21 @@ from tradebot.objects.commands.command import Command, is_keyword, parse_variabl
 
 
 class TransactionCommand(Command):
-    def __init__(self):
+    def __init__(self, buy: bool):
         super().__init__('')
+        self.buy = buy
 
     def parse(self, args: list) -> dict:
-        data = {'id': args[0], 'acronym': args[1], 'shares': 1, 'price': -1}
-        for a in range(2, len(args)):
+        if self.buy:
+            data = {'acronym': args[0], 'shares': 1, 'price': -1}
+        else:
+            data = {'id': int(args[0]), 'shares': -1, 'price': -1}
+        for a in range(1, len(args)):
             if is_keyword(args[a]):
                 n, v = parse_variable(args[a])
                 data[n] = v
-            elif a == 2:
+            elif a == 1:
                 data['shares'] = int(args[a])
             else:
-                data['price'] = args[a]
+                data['price'] = float(args[a])
         return data

@@ -29,13 +29,16 @@ def parse_command(s: str):
 
         found = False
 
+        print('Searching for {}'.format(args[0]))
         for c in commands:
             if args[0] == c.title:
-                data = c.parse(args)
+                print('Found {}'.format(args[0]))
+                data = c.parse(args[1:] if len(args) > 1 else [])
                 c.handle(cli_handler, data)
                 found = True
 
         if not found:
+            print('{} not found, executing as json message'.format(args[0]))
             if nargs == 1:
                 cli_handler.send(Message(args[0]))
             elif nargs == 2:

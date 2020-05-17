@@ -13,20 +13,20 @@ class AddStock(Command):
         super().__init__('stock')
 
     def parse(self, args: list) -> dict:
-        data = {'title': 'stock', 'acronym': args[0], 'shares': 1, 'buy_price': -1}
-        for a in range(2, len(args)):
+        data = {'title': 'stock', 'acronym': args[0], 'shares': 1, 'price': -1}
+        for a in range(1, len(args)):
             if is_keyword(args[a]):
                 n, v = parse_variable(args[a])
                 data[n] = v
             elif a == 1:
                 data['shares'] = int(args[a])
             else:
-                data['buy_price'] = args[a]
+                data['price'] = float(args[a])
         return data
 
     def handle(self, handler: MessageHandler, data: dict) -> None:
         handler.send(Message('vault_request', 'add_stock', ManagedStock(data['acronym'],
-                                                                        last_price=float(data['buy_price']),
+                                                                        last_price=float(data['price']),
                                                                         shares=int(data['shares']))))
 
 

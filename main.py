@@ -4,6 +4,7 @@ from tradebot.adapters.pyrh_adapter import PyrhAdapter
 from tradebot.file_io import *
 from tradebot.messaging.message import Message, MessageHandler
 from tradebot.controllers.cli import parse_command
+from tradebot.objects.stockdescriptor import Stock
 
 
 if __name__ == '__main__':
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     p = PyrhAdapter()
     p.login()
 
-    dm = monitor.StockMonitor('monitor', [t[0] for t in stocks], limit_dict, p)
+    dm = monitor.StockMonitor('monitor', [Stock(t[0].acronym) for t in stocks], limit_dict, p)
     dc = datacontroller.DataController('data_controller')
     # tc = tradecontroller.TradeController('trade_controller', 0)
 

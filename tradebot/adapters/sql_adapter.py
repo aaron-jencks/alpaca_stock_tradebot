@@ -9,7 +9,7 @@ import tradebot.objects.balancedescriptor as bd
 
 
 def execute_query(connection: sqlite3.Connection, query: str):
-    print('Executing query:\n{}'.format(query))
+    # print('Executing query:\n{}'.format(query))
     cursor = connection.cursor()
     try:
         cursor.execute(query)

@@ -27,9 +27,16 @@ class UpdateCommand(PolyCommand):
 
     def parse(self, args: list) -> dict:
         data = super().parse(args)
-        if len(data) == 0:
+        if len(data) == 1:
+            print('Sending monitor update message')
             data['title'] = 'force'
         return data
+
+    def handle(self, handler: MessageHandler, data: dict) -> None:
+        if data['title'] == 'force':
+            handler.send(Message('monitor_config', 'update'))
+        else:
+            super().handle(handler, data)
 
 
 class ListCommand(Command):
@@ -74,20 +81,20 @@ class BuyCommand(Command):
         super().__init__('buy')
 
     def parse(self, args: list) -> dict:
-        return TransactionCommand().parse(args)
+        return TransactionCommand(True).parse(args)
 
     def handle(self, handler: MessageHandler, data: dict) -> None:
         handler.send(Message('trade_request', 'buy', ManagedStock(data['acronym'],
-                                                                  last_price=float(data['bid_price']),
+                                                                  last_price=float(data['price']),
                                                                   shares=int(data['shares']))))
 
 
 class SellCommand(Command):
     def __init__(self):
-        super().__init__('buy')
+        super().__init__('sell')
 
     def parse(self, args: list) -> dict:
-        return TransactionCommand().parse(args)
+        return TransactionCommand(False).parse(args)
 
     def handle(self, handler: MessageHandler, data: dict) -> None:
         handler.send(Message('trade_request', 'sell', data))
