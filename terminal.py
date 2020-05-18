@@ -13,13 +13,12 @@ if __name__ == '__main__':
 
     v = StockVault()
 
-    # p = PyrhAdapter()
-    # p.login()
-    #
-    # dm = monitor.StockMonitor('monitor', [Stock(t[0].acronym) for t in stocks], limit_dict, p)
-    # # dc = datacontroller.DataController('data_controller')
-    # tc = tradecontroller.TradeController('trade_controller', 0)
-    #
+    p = PyrhAdapter()
+    p.login()
+
+    dm = monitor.StockMonitor('monitor', [], {}, p)
+    tc = tradecontroller.TradeController('trade_controller', 0)
+
     print('Starting modules')
     # relay.start()
     # p.start()

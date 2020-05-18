@@ -5,6 +5,7 @@ from tradebot.messaging.message import Message
 from tradebot.objects.stockdescriptor import *
 from tradebot.objects.limitdescriptor import *
 from tradebot.adapters.pyrh_adapter import PyrhAdapter
+from tradebot.controllers.stock_vault import StockVault
 
 
 class StockMonitor(QSM):
@@ -24,12 +25,31 @@ class StockMonitor(QSM):
         super().setup_states()
         self.mappings['update_prices'] = self.update_prices
         self.mappings['check_triggers'] = self.check_triggers
+        self.mappings['load_from_db'] = self.reload_msg
+
+    def reload_msg(self, msg: Message):
+        print('Loading the monitor from the database')
+        self.stocks = []
+        self.history = []
+        self.limits = {}
+        acronyms = StockVault.get_stock_names()
+        for a in acronyms:
+            self.stocks.append(Stock(a))
+            self.history.append(Stock(a))
+        for lm in StockVault.get_limits():
+            tid, typ, upp, lwr = lm
+            self.limits[tid] = LimitDescriptor(tid, typ, upp, lwr)
+        self.append_state('update_prices')
 
     def monitor_config_msg(self, msg: Message):
         if msg.msg == 'add':
-            self.stocks.append(msg.payload)
+            self.handler.send(Message('vault_request', 'add_monitor', msg.payload))
+            time.sleep(0.5)
+            self.append_state('load_from_db', msg)
         elif msg.msg == 'remove':
-            self.stocks.remove(msg.payload)
+            self.handler.send(Message('vault_request', 'remove_monitor', msg.payload))
+            time.sleep(0.5)
+            self.append_state('load_from_db', msg)
         elif msg.msg == 'update':
             self.append_state('update_prices')
         elif msg.msg == 'check_triggers':
@@ -50,8 +70,11 @@ class StockMonitor(QSM):
         self.append_state('check_triggers')
 
     def check_triggers(self):
-        for i, s in enumerate(self.stocks):
-            if self.limits[s.acronym].check_buy(self.history[i].bid_price, s.ask_price):
+        limits = StockVault.get_stock_ids_names()
+        for tid, acronym in limits:
+            index = self.history.index(Stock(acronym))
+            s = self.stocks[index]
+            if self.limits[tid].check_buy(self.history[index].bid_price, s.ask_price):
                 self.handler.send(Message('trade_control', 'buy', s))
-            elif self.limits[s.acronym].check_sell(self.history[i].ask_price, s.bid_price):
+            elif self.limits[s.acronym].check_sell(self.history[index].ask_price, s.bid_price):
                 self.handler.send(Message('trade_control', 'sell', s))

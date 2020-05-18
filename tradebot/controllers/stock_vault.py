@@ -40,7 +40,10 @@ class StockVault(QSM):
         self.mappings['remove_monitor'] = self.remove_monitor
         self.mappings['get_stock_names'] = self.__get_stock_names
         self.mappings['get_stock_ids'] = self.__get_stock_ids
+        self.mappings['get_stock_ids_names'] = self.__get_stock_ids_names
+        self.mappings['get_limits'] = self.__get_limits
         self.mappings['get_info'] = self.__get_info
+        self.mappings['get_balance'] = self.__get_balance
         self.mappings['update_stock'] = self.update_stock
         self.mappings['update_monitor'] = self.update_monitor
         self.mappings['add_transaction'] = self.add_transaction
@@ -180,11 +183,33 @@ class StockVault(QSM):
         else:
             self.req_out.put(None)
 
+    def __get_stock_ids_names(self, msg: Message):
+        if self.is_connected:
+            results = execute_read_query(self.connection, 'SELECT id, acronym FROM ManagedStocks')
+            self.req_out.put(list(results) if results is not None else None)
+        else:
+            self.req_out.put(None)
+
+    def __get_limits(self, msg: Message):
+        if self.is_connected:
+            results = execute_read_query(self.connection, 'SELECT * FROM StockLimits')
+            self.req_out.put([r[0] for r in results] if results is not None else None)
+        else:
+            self.req_out.put(None)
+
     def __get_info(self, msg: Message):
         if self.is_connected:
             result = execute_read_query(self.connection,
                                         'SELECT * FROM Stocks WHERE acronym = "{}"'.format(msg.payload))[0]
             self.req_out.put(Stock(result[0], result[1], result[2], result[3], result[4]))
+        else:
+            self.req_out.put(None)
+
+    def __get_balance(self, msg: Message):
+        if self.is_connected:
+            result = execute_read_query(self.connection,
+                                        'SELECT MAX(date), balance FROM BalanceLedger'.format(msg.payload))[0]
+            self.req_out.put(result[1] if result else None)
         else:
             self.req_out.put(None)
 
@@ -267,6 +292,34 @@ class StockVault(QSM):
         return results
 
     @staticmethod
+    def get_stock_ids_names() -> list:
+        if StockVault.instance is None:
+            StockVault.setup_instance()
+
+        StockVault.instance.req_lock.acquire()
+        print('Acquired lock')
+        StockVault.instance.requestq.put(Message('request', 'get_stock_ids_names'))
+        print('Waiting for response')
+        results = StockVault.instance.req_out.get()
+        StockVault.instance.req_lock.release()
+
+        return results
+
+    @staticmethod
+    def get_limits() -> list:
+        if StockVault.instance is None:
+            StockVault.setup_instance()
+
+        StockVault.instance.req_lock.acquire()
+        print('Acquired lock')
+        StockVault.instance.requestq.put(Message('request', 'get_limits'))
+        print('Waiting for response')
+        results = StockVault.instance.req_out.get()
+        StockVault.instance.req_lock.release()
+
+        return results
+
+    @staticmethod
     def get_info(acronym: str) -> Stock:
         if StockVault.instance is None:
             StockVault.setup_instance()
@@ -274,6 +327,20 @@ class StockVault(QSM):
         StockVault.instance.req_lock.acquire()
         # print('Acquired lock')
         StockVault.instance.requestq.put(Message('request', 'get_info', acronym))
+        # print('Waiting for response')
+        result = StockVault.instance.req_out.get()
+        StockVault.instance.req_lock.release()
+
+        return result
+
+    @staticmethod
+    def get_balance() -> float:
+        if StockVault.instance is None:
+            StockVault.setup_instance()
+
+        StockVault.instance.req_lock.acquire()
+        # print('Acquired lock')
+        StockVault.instance.requestq.put(Message('request', 'get_balance'))
         # print('Waiting for response')
         result = StockVault.instance.req_out.get()
         StockVault.instance.req_lock.release()

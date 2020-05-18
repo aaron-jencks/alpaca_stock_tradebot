@@ -2,13 +2,22 @@ from tradebot.objects.stockdescriptor import *
 from tradebot.messaging.qsm import QSM
 from tradebot.messaging.message import Message
 from tradebot.objects.balancedescriptor import BalanceUpdate
+from tradebot.controllers.stock_vault import StockVault
 
 
 class TradeController(QSM):
     def __init__(self, name: str, balance: float):
         super().__init__(name, ['trade_control', 'trade_request'])
-        self.stocks = []
+        self.stocks = {}
         self.balance = balance
+
+    def reload_msg(self, msg: Message):
+        print('Loading trade controller from the database')
+        self.stocks = {}
+        self.balance = 0
+        for tid, acronym in StockVault.get_stock_ids_names():
+            self.stocks[tid] = acronym
+        self.balance = StockVault.get_balance()
 
     def setup_states(self):
         super().setup_states()
